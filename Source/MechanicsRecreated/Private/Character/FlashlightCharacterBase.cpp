@@ -18,6 +18,9 @@ DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
 AFlashlightCharacterBase::AFlashlightCharacterBase()
 {
+
+	PrimaryActorTick.bCanEverTick = true;
+	
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 		
@@ -68,10 +71,12 @@ AFlashlightCharacterBase::AFlashlightCharacterBase()
 	// Initialize weapon and attach it skeletal mesh in right hand socket
 	WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
 	WeaponMesh->SetupAttachment(GetMesh(), "RightHandSocket");
-
+	
+	// Initialize weapon capsule collision
 	WeaponCollision = CreateDefaultSubobject<UCapsuleComponent>(TEXT("WeaponCollision"));
 	WeaponCollision->SetupAttachment(WeaponMesh);
 
+	// Initialize flashlight component
 	FlashlightComponent = CreateDefaultSubobject<UFlashlightComponent>(TEXT("Flashlight"));
 	
 }
@@ -95,6 +100,13 @@ void AFlashlightCharacterBase::BeginPlay()
 	FlashlightComponent->Deactivate();
 	WeaponCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
+
+
+void AFlashlightCharacterBase::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 // Input
@@ -121,6 +133,7 @@ void AFlashlightCharacterBase::SetupPlayerInputComponent(UInputComponent* Player
 
 	// Bind the input actions
 	PlayerInputComponent->BindAction("UseFlashlight", IE_Pressed, this, &AFlashlightCharacterBase::UseFlashlight);
+	PlayerInputComponent->BindAction("UseFlashlight", IE_Released, this, &AFlashlightCharacterBase::StopUsingFlashlight);
 	PlayerInputComponent->BindAction("Melee", IE_Pressed, this, &AFlashlightCharacterBase::Melee);
 }
 
@@ -162,10 +175,16 @@ void AFlashlightCharacterBase::Look(const FInputActionValue& Value)
 
 void AFlashlightCharacterBase::UseFlashlight()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Fire action triggered"));
+	FlashlightComponent->Activate();
+}
+
+void AFlashlightCharacterBase::StopUsingFlashlight()
+{
+	FlashlightComponent->Deactivate();
 }
 
 void AFlashlightCharacterBase::Melee()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Fire action triggered"));
+	
 }
+

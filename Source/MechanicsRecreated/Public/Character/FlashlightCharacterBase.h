@@ -63,10 +63,42 @@ class MECHANICSRECREATED_API AFlashlightCharacterBase : public ACharacter
 	/** Look Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* LookAction;
+
 	
 public:
 	// Sets default values for this character's properties
 	AFlashlightCharacterBase();
+
+	virtual void Tick(float DeltaTime) override;
+
+	// Variables for Blueprint Timeline for UseFlashlight trigger
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="CameraProperties")
+	float StartFOV = 90.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="CameraProperties")
+	float EndFOV = 70.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="CameraProperties")
+	float StartCameraPosition = 90.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="CameraProperties")
+	float EndCameraPosition = 70.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="SpotLightProperties")
+	float StartLightIntensity = 20000.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="SpotLightProperties")
+	float EndLightIntensity = 100000.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="SpotLightProperties")
+	float StartOuterConeAngle = 12.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="SpotLightProperties")
+	float EndOuterConeAngle = 2.0f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="SpotLightProperties")
+	float StartInnerConeAngle = 10.0f;
+	
 
 protected:
 
@@ -80,13 +112,15 @@ protected:
 
 	// Input actions specified in editor Project Settings
 	void UseFlashlight();
+	void StopUsingFlashlight();
 	void Melee();
 	
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
 	// To add mapping context
-	virtual void BeginPlay();
+	virtual void BeginPlay() override;
+
 	
 public:	
 	
