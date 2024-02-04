@@ -1,6 +1,7 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "MechanicsRecreatedCharacter.h"
+
+#include "Character/FlashlightCharacterBase.h"
 #include "Engine/LocalPlayer.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -10,12 +11,12 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include "Components/SpotLightComponent.h"
 
 
-//////////////////////////////////////////////////////////////////////////
-// AMechanicsRecreatedCharacter
+DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
-AMechanicsRecreatedCharacter::AMechanicsRecreatedCharacter()
+AFlashlightCharacterBase::AFlashlightCharacterBase()
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
@@ -26,7 +27,8 @@ AMechanicsRecreatedCharacter::AMechanicsRecreatedCharacter()
 	bUseControllerRotationRoll = false;
 
 	// Configure character movement
-	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
+	GetCharacterMovement()->bOrientRotationToMovement = false; // Character uses controller rotation
+	GetCharacterMovement()->bUseControllerDesiredRotation = true; // Character uses controller rotation
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); // ...at this rotation rate
 
 	// Note: For faster iteration times these variables, and many more, can be tweaked in the Character Blueprint
@@ -49,11 +51,33 @@ AMechanicsRecreatedCharacter::AMechanicsRecreatedCharacter()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
-	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
-	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+	// Initialize the static mesh components and attach them to the skeletal mesh in left hand socket
+	FlashlightMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("FlashlightMesh"));
+	FlashlightMesh->SetupAttachment(GetMesh(), "LeftHandSocket");
+
+	// Initialize spotlight and attach it to front of flashlight mesh
+	FlashlightSpotLight = CreateDefaultSubobject<USpotLightComponent>(TEXT("FlashlightSpotlight"));
+	FlashlightSpotLight->SetupAttachment(FlashlightMesh, "Bulb");
+	
+	// Default spotlight settings
+	FlashlightSpotLight->Intensity = 10000.0f;
+	FlashlightSpotLight->InnerConeAngle = 10.0f;
+	FlashlightSpotLight->OuterConeAngle = 20.0f;
+	FlashlightSpotLight->AttenuationRadius = 1000.0f;
+
+	// Initialize weapon and attach it skeletal mesh in right hand socket
+	WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
+	WeaponMesh->SetupAttachment(GetMesh(), "RightHandSocket");
+
+	WeaponCollision = CreateDefaultSubobject<UCapsuleComponent>(TEXT("WeaponCollision"));
+	WeaponCollision->SetupAttachment(WeaponMesh);
+
+	FlashlightComponent = CreateDefaultSubobject<UFlashlightComponent>(TEXT("Flashlight"));
+	
 }
 
-void AMechanicsRecreatedCharacter::BeginPlay()
+
+void AFlashlightCharacterBase::BeginPlay()
 {
 	// Call the base class  
 	Super::BeginPlay();
@@ -66,12 +90,16 @@ void AMechanicsRecreatedCharacter::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
+
+	// Deactivate flashlight component and weapon collision
+	FlashlightComponent->Deactivate();
+	WeaponCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 //////////////////////////////////////////////////////////////////////////
 // Input
 
-void AMechanicsRecreatedCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+void AFlashlightCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
@@ -81,18 +109,22 @@ void AMechanicsRecreatedCharacter::SetupPlayerInputComponent(UInputComponent* Pl
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 
 		// Moving
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AMechanicsRecreatedCharacter::Move);
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AFlashlightCharacterBase::Move);
 
 		// Looking
-		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AMechanicsRecreatedCharacter::Look);
+		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AFlashlightCharacterBase::Look);
 	}
 	else
 	{
-		
+		UE_LOG(LogTemplateCharacter, Error, TEXT("'%s' Failed to find an Enhanced Input component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
 	}
+
+	// Bind the input actions
+	PlayerInputComponent->BindAction("UseFlashlight", IE_Pressed, this, &AFlashlightCharacterBase::UseFlashlight);
+	PlayerInputComponent->BindAction("Melee", IE_Pressed, this, &AFlashlightCharacterBase::Melee);
 }
 
-void AMechanicsRecreatedCharacter::Move(const FInputActionValue& Value)
+void AFlashlightCharacterBase::Move(const FInputActionValue& Value)
 {
 	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
@@ -115,7 +147,7 @@ void AMechanicsRecreatedCharacter::Move(const FInputActionValue& Value)
 	}
 }
 
-void AMechanicsRecreatedCharacter::Look(const FInputActionValue& Value)
+void AFlashlightCharacterBase::Look(const FInputActionValue& Value)
 {
 	// input is a Vector2D
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
@@ -126,4 +158,14 @@ void AMechanicsRecreatedCharacter::Look(const FInputActionValue& Value)
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
+}
+
+void AFlashlightCharacterBase::UseFlashlight()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Fire action triggered"));
+}
+
+void AFlashlightCharacterBase::Melee()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Fire action triggered"));
 }
