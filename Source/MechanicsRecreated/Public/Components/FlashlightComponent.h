@@ -4,13 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-//#include "Character/FlashlightCharacterBase.h"
+#include "Components/SpotLightComponent.h"
+#include "Interfaces/DamageInterface.h"
 #include "FlashlightComponent.generated.h"
 
 class AFlashlightCharacterBase;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class MECHANICSRECREATED_API UFlashlightComponent : public UActorComponent 
+class MECHANICSRECREATED_API UFlashlightComponent : public UActorComponent, public IDamageInterface
 {
 	GENERATED_BODY()
 
@@ -30,11 +31,13 @@ public:
 	float FlashRange = 1000;
 
 	UPROPERTY(EditAnywhere, Category = "FlashlightProperties")
-	float FlashlightDamage = 1000;
+	float Damage = 1;
 
 private:
 
-	AFlashlightCharacterBase* ThirdPersonCharacterRef;
+	AFlashlightCharacterBase* PlayerRef;
+	USpotLightComponent* PlayerSpotlight;
 
-		
+	UFUNCTION()
+	void FlashlightLineTrace();
 };

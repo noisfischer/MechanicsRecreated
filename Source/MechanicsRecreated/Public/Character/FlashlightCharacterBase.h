@@ -37,9 +37,6 @@ class MECHANICSRECREATED_API AFlashlightCharacterBase : public ACharacter
 	UStaticMeshComponent* FlashlightMesh;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Mesh, meta = (AllowPrivateAccess = "true"))
-	USpotLightComponent* FlashlightSpotLight;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Mesh, meta = (AllowPrivateAccess = "true"))
 	UFlashlightComponent* FlashlightComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Mesh, meta = (AllowPrivateAccess = "true"))
@@ -70,6 +67,9 @@ public:
 	AFlashlightCharacterBase();
 
 	virtual void Tick(float DeltaTime) override;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Flashlight")
+	USpotLightComponent* FlashlightSpotLight;
 
 	// Variables for Blueprint Timeline for UseFlashlight trigger
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="CameraProperties")

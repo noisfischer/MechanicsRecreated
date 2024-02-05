@@ -78,7 +78,6 @@ AFlashlightCharacterBase::AFlashlightCharacterBase()
 
 	// Initialize flashlight component
 	FlashlightComponent = CreateDefaultSubobject<UFlashlightComponent>(TEXT("Flashlight"));
-	
 }
 
 
@@ -86,7 +85,7 @@ void AFlashlightCharacterBase::BeginPlay()
 {
 	// Call the base class  
 	Super::BeginPlay();
-
+	
 	//Add Input Mapping Context
 	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
 	{
@@ -173,6 +172,8 @@ void AFlashlightCharacterBase::Look(const FInputActionValue& Value)
 	}
 }
 
+
+// Flashlight Ability using Left Click
 void AFlashlightCharacterBase::UseFlashlight()
 {
 	FlashlightComponent->Activate();
@@ -183,6 +184,8 @@ void AFlashlightCharacterBase::StopUsingFlashlight()
 	FlashlightComponent->Deactivate();
 }
 
+
+// Melee using right click
 void AFlashlightCharacterBase::Melee()
 {
 	
