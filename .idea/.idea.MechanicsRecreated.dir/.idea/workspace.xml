@@ -10,11 +10,10 @@
     <list default="true" id="e479e85a-0bb9-4eb3-80d2-5477b99b8b22" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.MechanicsRecreated.dir/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.MechanicsRecreated.dir/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Blueprints/BP_FlashlightCharacter.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Blueprints/BP_FlashlightCharacter.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/Blueprints/FlashlightComponent.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Blueprints/FlashlightComponent.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Blueprints/TestGameMode.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Blueprints/TestGameMode.uasset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/TestLevel.umap" beforeDir="false" afterPath="$PROJECT_DIR$/Content/TestLevel.umap" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MechanicsRecreated/Private/Components/FlashlightComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MechanicsRecreated/Private/Components/FlashlightComponent.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MechanicsRecreated/Public/Components/FlashlightComponent.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MechanicsRecreated/Public/Components/FlashlightComponent.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/StarterContent/Architecture/Floor_400x400.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/StarterContent/Architecture/Floor_400x400.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/StarterContent/HDRI/HDRI_Epic_Courtyard_Daylight.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/StarterContent/HDRI/HDRI_Epic_Courtyard_Daylight.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/StarterContent/Particles/P_Explosion.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/StarterContent/Particles/P_Explosion.uasset" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -130,6 +129,7 @@
       <workItem from="1707062545788" duration="191000" />
       <workItem from="1707068856304" duration="4957000" />
       <workItem from="1707332642445" duration="96000" />
+      <workItem from="1707333589400" duration="662000" />
     </task>
     <servers />
   </component>
