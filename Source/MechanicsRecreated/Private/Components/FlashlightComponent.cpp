@@ -7,7 +7,6 @@
 #include "Particles/ParticleSystem.h"
 #include "DrawDebugHelpers.h"
 #include "Components/FlashlightComponent.h"
-
 #include "CollisionDebugDrawingPublic.h"
 #include "Character/FlashlightCharacterBase.h"
 
@@ -18,18 +17,17 @@ UFlashlightComponent::UFlashlightComponent()
 }
 
 
-// Called when the game starts
 void UFlashlightComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	this->Deactivate();
+	this->Deactivate();												// Start with flashlight disables
 	this->SetComponentTickEnabled(false);
 	
-	PlayerRef = Cast<AFlashlightCharacterBase>(GetOwner());
+	PlayerRef = Cast<AFlashlightCharacterBase>(GetOwner());		// Get child class of flashlight character base class (player character)
 	if(PlayerRef)
 	{
-		PlayerSpotlight = PlayerRef->FlashlightSpotLight;
+		PlayerSpotlight = PlayerRef->FlashlightSpotLight;			// Get spotlight attached to character's flashlight mesh
 	}
 }
 
@@ -39,7 +37,7 @@ void UFlashlightComponent::TickComponent(float DeltaTime, ELevelTick TickType, F
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (this->IsActive() && PlayerSpotlight)
+	if (this->IsActive() && PlayerSpotlight)						// if component is active and PlayerSpotlight is valid, call line trace function
 	{
 		FlashlightLineTrace();
 	}
@@ -67,7 +65,7 @@ void UFlashlightComponent::FlashlightLineTrace()
 			AActor* HitActor = HitResult.GetActor();
 			if (HitActor && HitActor->ActorHasTag(FName("enemy")) && !HitActor->ActorHasTag(FName("shielddown")) && HitActor->GetClass()->ImplementsInterface(UDamageInterface::StaticClass()))
 			{
-				// Hit line
+				// debug hit line
 				DrawDebugLine(
 					GetWorld(),
 					StartLocation,
@@ -78,9 +76,17 @@ void UFlashlightComponent::FlashlightLineTrace()
 					0, // Depth priority
 					1.0f
 				);
+				
+				Execute_FlashlightDamage(HitActor, Damage);		// Interface event shared between this and base enemy class
 
-				// Calls Damage Interface event in enemy
-				Execute_FlashlightDamage(HitActor, Damage);
+				UGameplayStatics::SpawnEmitterAtLocation(
+					GetWorld(),
+					FlashlightDamageParticles,
+					HitResult.ImpactPoint,
+					HitResult.ImpactNormal.Rotation(),
+					ParticleSize,
+					true
+					);
 			}
 
 			else

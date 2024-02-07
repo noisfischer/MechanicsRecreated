@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "Components/SpotLightComponent.h"
+#include "Particles/ParticleSystem.h"
 #include "Interfaces/DamageInterface.h"
 #include "FlashlightComponent.generated.h"
 
@@ -27,16 +28,22 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	UPROPERTY(EditAnywhere, Category = "FlashlightProperties")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "1- STATS")
 	float FlashRange = 1000;
 
-	UPROPERTY(EditAnywhere, Category = "FlashlightProperties")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "1- STATS")
 	float Damage = 1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="2 - PARTICLES")
+	UParticleSystem* FlashlightDamageParticles;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="2 - PARTICLES")
+	FVector ParticleSize {1.0, 1.0, 1.0};
 
 private:
 
-	AFlashlightCharacterBase* PlayerRef;
-	USpotLightComponent* PlayerSpotlight;
+	AFlashlightCharacterBase* PlayerRef;	// Variable PlayerRef points to base character address
+	USpotLightComponent* PlayerSpotlight;	// points to spot light component class
 
 	UFUNCTION()
 	void FlashlightLineTrace();
