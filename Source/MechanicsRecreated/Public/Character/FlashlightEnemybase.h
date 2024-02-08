@@ -27,26 +27,32 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="1 - HEALTH")
 	float currentShield = 100;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="1 - HEALTH")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="1 - HEALTH")	// Reaction on shield break assigned in child class
 	UAnimMontage* shieldBreakMontage;
 
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="1 - HEALTH")
-	UUserWidget* UserWidget;
-	
+	UPROPERTY(VisibleAnywhere)
+	bool EnemyDead = false;
+
+private:
+	UPROPERTY(VisibleAnywhere)
+	UUserWidget* UserWidget;	// Actual widget displayed over enemy head. Assigned in child class's widget component
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 public:	
-	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
-	// Called to bind functionality to input
+	
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	// Enemy receives shield damage as does widget health bar
 	virtual void FlashlightDamage_Implementation(float Damage) override;
 
+	// Enemy receives melee damage if widget health bar is depleted
+	virtual void MeleeDamage_Implementation() override;
+
+	// Plays hit reaction when enemy's shield is broken
 	virtual float PlayAnimMontage(UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName) override;
 
 };

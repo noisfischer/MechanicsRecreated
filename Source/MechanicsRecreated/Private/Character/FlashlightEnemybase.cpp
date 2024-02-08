@@ -23,8 +23,8 @@ void AFlashlightEnemybase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Assign specific User Widget to widget component
-	UserWidget = Cast<UUserWidget>(ShieldWidget->GetUserWidgetObject());
+	// Assign User Widget assigned to widget component in BP child class
+	UserWidget = ShieldWidget->GetUserWidgetObject();
 	
 }
 
@@ -39,7 +39,7 @@ void AFlashlightEnemybase::FlashlightDamage_Implementation(float Damage)
 {
 	currentShield = FMath::Clamp(currentShield - Damage, 0, maxShield);	// Clamp currentShield value to min 0
 
-	if (currentShield == 0)
+	if (UserWidget && currentShield == 0)
 	{
 		Tags.Add("shieldDown");								// Stops flashlight component line trace hit
 		UserWidget->SetVisibility(ESlateVisibility::Hidden);	// Hides shield health widget
@@ -53,6 +53,17 @@ void AFlashlightEnemybase::FlashlightDamage_Implementation(float Damage)
 	}
 	
 }
+
+
+
+void AFlashlightEnemybase::MeleeDamage_Implementation()
+{
+	EnemyDead = true;
+	this->GetMesh()->SetSimulatePhysics(true);
+}
+
+
+
 
 float AFlashlightEnemybase::PlayAnimMontage(UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName)
 {

@@ -5,6 +5,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/SpotLightComponent.h"
 #include "Components/FlashlightComponent.h"
+#include "Interfaces/DamageInterface.h"
 #include "FlashlightCharacterBase.generated.h"
 
 class UFlashlightComponent;
@@ -21,7 +22,7 @@ struct FInputActionValue;
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
 UCLASS()
-class MECHANICSRECREATED_API AFlashlightCharacterBase : public ACharacter
+class MECHANICSRECREATED_API AFlashlightCharacterBase : public ACharacter, public IDamageInterface
 {
 	GENERATED_BODY()
 
@@ -98,6 +99,24 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="SpotLightProperties")
 	float StartInnerConeAngle = 10.0f;
+
+	// Assign Montages for Aim & Melee
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Animations")
+	UAnimMontage* MeleeMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Animations")
+	float MeleeMontageSpeed = 2.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Animations")
+	UAnimMontage* AimMontage;
+
+	UFUNCTION()
+	void OnWeaponCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void OnMontageFinished(UAnimMontage* Montage, bool bInterrupted);
+	
+	virtual float PlayAnimMontage(UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName) override;
 	
 
 protected:
@@ -107,13 +126,11 @@ protected:
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
-
-protected:
-
+	
 	// Input actions specified in editor Project Settings
-	void UseFlashlight();
-	void StopUsingFlashlight();
-	void Melee();
+	void UseFlashlight();			// start left-click
+	void StopUsingFlashlight();		// end left-click
+	void Melee();					// right-click
 	
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -121,6 +138,10 @@ protected:
 	// To add mapping context
 	virtual void BeginPlay() override;
 
+
+private:
+	bool IsAttacking = false;
+	bool IsAiming = false;
 	
 public:	
 	

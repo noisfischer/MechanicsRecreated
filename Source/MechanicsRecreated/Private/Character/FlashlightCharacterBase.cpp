@@ -98,7 +98,18 @@ void AFlashlightCharacterBase::BeginPlay()
 	// Deactivate flashlight component and weapon collision
 	FlashlightComponent->Deactivate();
 	WeaponCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	// Activate weapon collision
+	WeaponCollision->OnComponentBeginOverlap.AddDynamic(this, &AFlashlightCharacterBase::OnWeaponCollisionOverlap);
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance != nullptr)
+	{
+		AnimInstance->OnMontageEnded.AddDynamic(this, &AFlashlightCharacterBase::OnMontageFinished);
+	}
 }
+
+
 
 
 void AFlashlightCharacterBase::Tick(float DeltaTime)
@@ -176,18 +187,77 @@ void AFlashlightCharacterBase::Look(const FInputActionValue& Value)
 // Flashlight Ability using Left Click
 void AFlashlightCharacterBase::UseFlashlight()
 {
-	FlashlightComponent->Activate();
+	if (!IsAttacking)
+	{
+		IsAiming = true;
+		PlayAnimMontage(AimMontage, 0.01, FName("None"));
+		FlashlightComponent->Activate();
+	}
+	
 }
 
 void AFlashlightCharacterBase::StopUsingFlashlight()
 {
-	FlashlightComponent->Deactivate();
+	if (FlashlightComponent->IsActive())
+	{
+		IsAiming = false;
+		FlashlightComponent->Deactivate();
+	}
 }
 
+
+float AFlashlightCharacterBase::PlayAnimMontage(UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName)
+{
+	float MontageLength = 0.0f;	// Default length
+	if(AnimMontage)
+	{
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+		
+		if(AnimInstance)
+		{
+			MontageLength = AnimInstance->Montage_Play(AnimMontage, InPlayRate);
+			
+			if (MontageLength > 0.f && StartSectionName != NAME_None)
+			{
+				AnimInstance->Montage_JumpToSection(StartSectionName, AnimMontage);
+			}
+		}
+	}
+	return MontageLength;
+}
+
+
+/////////////////////////// MELEE ////////////////////////////////
 
 // Melee using right click
 void AFlashlightCharacterBase::Melee()
 {
-	
+	if(!IsAttacking && !IsAiming)
+	{
+		WeaponCollision->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		IsAttacking = true;
+		PlayAnimMontage(MeleeMontage, MeleeMontageSpeed, FName("None"));
+	}
+}
+
+
+// Bound to WeaponCollision capsule collision component on Weapon Mesh (look at BeginPlay)
+void AFlashlightCharacterBase::OnWeaponCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if(OtherActor->ActorHasTag("shieldDown"))
+	{
+		Execute_MeleeDamage(OtherActor);
+	}
+}
+
+
+void AFlashlightCharacterBase::OnMontageFinished(UAnimMontage* Montage, bool bInterrupted)
+{
+	if (Montage == MeleeMontage || bInterrupted)
+	{
+		// Here you can set your variable, disable collision, or perform any other necessary actions.
+		WeaponCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		IsAttacking = false;
+	}
 }
 
