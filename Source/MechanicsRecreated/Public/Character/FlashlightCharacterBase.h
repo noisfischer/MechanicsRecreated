@@ -5,6 +5,8 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/SpotLightComponent.h"
 #include "Components/FlashlightComponent.h"
+#include "Components/TimelineComponent.h"
+#include "Curves/CurveFloat.h"
 #include "Interfaces/DamageInterface.h"
 #include "FlashlightCharacterBase.generated.h"
 
@@ -68,9 +70,9 @@ public:
 	AFlashlightCharacterBase();
 	
 
+	
 	/////// MEMBERS /////////
 	
-
 	// DEFAULT CAMERA PROPERTIES FOR AIM TIMELINE
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="CameraProperties")
 	float StartFOV = 90.0f;
@@ -90,6 +92,15 @@ public:
 	USpotLightComponent* FlashlightSpotLight;
 
 	
+
+	// TIMELINE TO CONTROL CAMERA & FLASHLIGHT PROPERTIES
+	UPROPERTY()
+	FTimeline AimTimeline;
+
+	// FLOAT CURVE MADE IN UE EDITOR TO BE ASSIGNED IN CHILD BP
+	UPROPERTY(EditAnywhere, Category="AimTimeline")
+	UCurveFloat* AimTimelineCurve;
+	
 	// DEFAULT SPOTLIGHT PROPERTIES FOR AIM TIMELINE
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="SpotLightProperties")
 	float StartLightIntensity = 20000.0f;
@@ -106,6 +117,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="SpotLightProperties")
 	float StartInnerConeAngle = 10.0f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="SpotLightProperties")
+	float EndInnerConeAngle = 1.0f;
+
+
 	
 	// MONTAGE DECLARATIONS/INITIALIZATIONS
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Animations")
@@ -117,16 +132,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Animations")
 	UAnimMontage* AimMontage;
 
+
 	
-	// CONDITIONALS TO PREVENT MONTAGE INTERRUPTIONS - no spamming melee 
+	// CONDITIONALS 
 	bool IsAttacking = false;
 	bool IsAiming = false;
-
 	
 
+
+	
 	////////// FUNCTIONS /////////////
-	
-	
 	
 	// HANDLES WEAPON CAPSULE COLLISION COMPONENT - BOUND TO WeaponCollision COMPONENT ON BEGIN PLAY
 	UFUNCTION()
@@ -153,6 +168,14 @@ public:
 	// ACTIVATE/DEACTIVATE WeaponCollision COMPONENT - CALLED IN MeleeAnimNotify.cpp
 	virtual void ActivateWeapon();
 	virtual void DeactivateWeapon();
+
+
+	// TIMELINE FUNCTIONS
+	UFUNCTION()
+	void HandleTimelineProgress(float Alpha);	// CALLED IN TICK FUNCTION
+	UFUNCTION()
+	void OnTimelineFinished();							// CALLED WHEN TIMELINE IS DONE PLAYING/REVERSING
+	
 
 	virtual void Tick(float DeltaTime) override;
 

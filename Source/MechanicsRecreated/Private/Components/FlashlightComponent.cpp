@@ -64,8 +64,8 @@ void UFlashlightComponent::FlashlightLineTrace()
 			AActor* HitActor = HitResult.GetActor();
 			if (HitActor && HitActor->ActorHasTag(FName("enemy")) && !HitActor->ActorHasTag(FName("shieldDown")) && HitActor->GetClass()->ImplementsInterface(UDamageInterface::StaticClass()))
 			{
-				
-				DrawDebugLine(
+				// Hit Line
+				/*DrawDebugLine(
 					GetWorld(),
 					StartLocation,
 					EndLocation,
@@ -74,7 +74,7 @@ void UFlashlightComponent::FlashlightLineTrace()
 					0.2f,
 					0, // Depth priority
 					1.0f
-				);
+				); */
 				
 				Execute_FlashlightDamage(HitActor, Damage);		// Interface event shared between this and base enemy class
 
@@ -91,7 +91,7 @@ void UFlashlightComponent::FlashlightLineTrace()
 			else
 			{
 				// Non-Hit line
-				DrawDebugLine(
+				/*DrawDebugLine(
 					GetWorld(),
 					StartLocation,
 					EndLocation,
@@ -100,7 +100,7 @@ void UFlashlightComponent::FlashlightLineTrace()
 					0.2f,
 					0, // Depth priority
 					1.0f
-					);
+					);*/
 			}
 		}
 		

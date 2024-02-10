@@ -105,6 +105,22 @@ void AFlashlightCharacterBase::BeginPlay()
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance != nullptr)
 		AnimInstance->OnMontageEnded.AddDynamic(this, &AFlashlightCharacterBase::OnMontageFinished);
+
+
+	if (AimTimelineCurve)
+	{
+		FOnTimelineFloat onTimelineProgress;
+		onTimelineProgress.BindUFunction(this, FName("HandleTimelineProgress"));
+        
+		AimTimeline.AddInterpFloat(AimTimelineCurve, onTimelineProgress);
+        
+		// Bind the finished function
+		FOnTimelineEvent onTimelineFinished;
+		onTimelineFinished.BindUFunction(this, FName("OnTimelineFinished"));
+		AimTimeline.SetTimelineFinishedFunc(onTimelineFinished);
+
+		AimTimeline.SetLooping(false);
+	}
 	
 }
 
@@ -112,6 +128,8 @@ void AFlashlightCharacterBase::BeginPlay()
 void AFlashlightCharacterBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
+	AimTimeline.TickTimeline(DeltaTime);
 }
 
 
@@ -186,17 +204,21 @@ void AFlashlightCharacterBase::Look(const FInputActionValue& Value)
 // AIM FLASHLIGHT START - activates flashlight component 
 void AFlashlightCharacterBase::UseFlashlight()
 {
-	if (!IsAttacking && FlashlightComponent)
+	if (!IsAttacking && FlashlightComponent && AimTimelineCurve)
 	{
 		IsAiming = true;
 		PlayAnimMontage(AimMontage, 0.01, FName("None"));
-		FlashlightComponent->Activate();
-		FlashlightComponent->SetComponentTickEnabled(true);
+		
+		FOnTimelineFloat ProgressFunction;
+		ProgressFunction.BindUFunction(this, FName("HandleTimelineProgress"));
+		AimTimeline.AddInterpFloat(AimTimelineCurve, ProgressFunction);
+		AimTimeline.SetLooping(false);
+		AimTimeline.Play();
 	}
 
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("FlashightComp is null"));
+		UE_LOG(LogTemp, Warning, TEXT("Use Flashlight condition failed!"));
 	}
 	
 }
@@ -204,11 +226,13 @@ void AFlashlightCharacterBase::UseFlashlight()
 // AIM FLASHLIGHT END - deactivates flashlight component
 void AFlashlightCharacterBase::StopUsingFlashlight()
 {
-	if (FlashlightComponent->IsActive())
+	if (IsAiming)
 	{
 		IsAiming = false;
 		FlashlightComponent->Deactivate();
 		FlashlightComponent->SetComponentTickEnabled(false);
+
+		AimTimeline.Reverse();
 	}
 }
 
@@ -258,7 +282,6 @@ void AFlashlightCharacterBase::DeactivateWeapon()
 }
 
 
-
 // BOUND TO WEAPON COLLISION COMPONENT'S OnBeginOverlap EVENT
 void AFlashlightCharacterBase::OnWeaponCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
@@ -272,4 +295,33 @@ void AFlashlightCharacterBase::OnWeaponCollisionOverlap(UPrimitiveComponent* Ove
 void AFlashlightCharacterBase::OnMontageFinished(UAnimMontage* Montage, bool bMontageInterrupted)
 {
 		IsAttacking = false;
+}
+
+// UPDATES CAMERA & FLASHLIGHT PROPERTIES EVERY TICK DURING AIM TIMELINE
+void AFlashlightCharacterBase::HandleTimelineProgress(float Alpha)
+{
+	// LERP the FOV from start to end using the timeline's alpha
+	float NewFOV = FMath::Lerp(StartFOV, EndFOV, Alpha);
+	FollowCamera->SetFieldOfView(NewFOV);
+
+	// LERP the flashlight intensity
+	float NewIntensity = FMath::Lerp(StartLightIntensity, EndLightIntensity, Alpha);
+	FlashlightSpotLight->SetIntensity(NewIntensity);
+
+	// LERP the outer cone angle
+	float NewOuterConeAngle = FMath::Lerp(StartOuterConeAngle, EndOuterConeAngle, Alpha);
+	FlashlightSpotLight->SetOuterConeAngle(NewOuterConeAngle);
+	
+	float NewInnerConeAngle = FMath::Lerp(StartInnerConeAngle, EndInnerConeAngle, Alpha);
+	FlashlightSpotLight->SetInnerConeAngle(NewInnerConeAngle);
+}
+
+
+void AFlashlightCharacterBase::OnTimelineFinished()
+{
+	if(IsAiming)
+	{
+		FlashlightComponent->Activate();
+		FlashlightComponent->SetComponentTickEnabled(true);
+	}
 }
