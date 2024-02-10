@@ -174,7 +174,7 @@ public:
 	UFUNCTION()
 	void HandleTimelineProgress(float Alpha);	// CALLED IN TICK FUNCTION
 	UFUNCTION()
-	void OnTimelineFinished();							// CALLED WHEN TIMELINE IS DONE PLAYING/REVERSING
+	void OnTimelineFinished();					// CALLED WHEN TIMELINE IS DONE PLAYING/REVERSING
 	
 
 	virtual void Tick(float DeltaTime) override;
@@ -182,8 +182,10 @@ public:
 
 private:
 
+	// HELPER FOR ENABLING/DISABLING AimTimeline ON TICK
 	UPROPERTY()
 	bool AimReverse = false;
+
 	
 	// INPUT ACTIONS SPECIFIED IN PROJECT INPUT SETTINGS
 	// BINDINGS IN SetupPlayerInputComponent IMPLEMENTATION IN CPP

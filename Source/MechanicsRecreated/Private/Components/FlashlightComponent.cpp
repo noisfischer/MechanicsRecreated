@@ -10,7 +10,7 @@
 #include "CollisionDebugDrawingPublic.h"
 #include "Character/FlashlightCharacterBase.h"
 
-// CONSTRUCTORS
+// CONSTRUCTOR
 UFlashlightComponent::UFlashlightComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
@@ -20,45 +20,51 @@ UFlashlightComponent::UFlashlightComponent()
 void UFlashlightComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	PlayerRef = Cast<AFlashlightCharacterBase>(GetOwner());		// Get child class of flashlight character base class (player character)
+
+	// INITIALIZE PlayerRef & PlayerSpotlight VIA CAST TO CURRENT OWNER
+	PlayerRef = Cast<AFlashlightCharacterBase>(GetOwner());
 	if(PlayerRef)
 	{
-		PlayerSpotlight = PlayerRef->FlashlightSpotLight;			// Get spotlight attached to character's flashlight mesh
+		PlayerSpotlight = PlayerRef->FlashlightSpotLight;
 	}
 
+	// DEACTIVATE AIM LINE TRACE FUNCTIONALITY
 	this->SetComponentTickEnabled(false);
 	
 }
 
 
-// Called every frame
+
 void UFlashlightComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
 	
-	if (this->IsActive() && PlayerSpotlight)						// if component is active and PlayerSpotlight is valid, call line trace function
+	// AIM LINE TRACE ACTIVATED WHEN PLAYER CALLS UseFlashlight()
+	if (this->IsActive() && PlayerSpotlight)
 	{
 		FlashlightLineTrace();
 	}
 }
 
 
+// AIM LINE TRACE FUNCTIONALITY
 void UFlashlightComponent::FlashlightLineTrace()
 {
 	
 	if (PlayerSpotlight && PlayerRef)
 	{
-		// Start and end vectors of line trace
+		// INITIALIZE LINE TRACE LENGTH AND ROTATION
 		FVector StartLocation = PlayerSpotlight->GetComponentLocation();
 		FVector ForwardVector = PlayerSpotlight->GetForwardVector();
 		FVector EndLocation = StartLocation + (ForwardVector * FlashRange);
 
+		// SET VARIABLES FOR LINE TRACE ARGUMENTS
 		FHitResult HitResult;
 		FCollisionQueryParams QueryParams;
 		QueryParams.AddIgnoredActor(PlayerRef);	// ignore self in trace
 
-		// Perform line trace
+		// PERFORM LINE TRACE
 		if (GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECC_Camera, QueryParams))
 		{
 			AActor* HitActor = HitResult.GetActor();
@@ -75,9 +81,13 @@ void UFlashlightComponent::FlashlightLineTrace()
 					0, // Depth priority
 					1.0f
 				); */
-				
-				Execute_FlashlightDamage(HitActor, Damage);		// Interface event shared between this and base enemy class
 
+				
+				// SEND INTERFACE EVENT MESSAGE TO HIT ENEMY TO TAKE FLASHLIGHT DAMAGE
+				Execute_FlashlightDamage(HitActor, Damage);
+
+				
+				// VFX SPAWNED AT HIT LOCATION
 				UGameplayStatics::SpawnEmitterAtLocation(
 					GetWorld(),
 					FlashlightDamageParticles,

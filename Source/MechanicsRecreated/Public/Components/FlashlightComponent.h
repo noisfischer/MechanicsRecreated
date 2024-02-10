@@ -19,12 +19,13 @@ class MECHANICSRECREATED_API UFlashlightComponent : public UActorComponent, publ
 
 	
 public:
-	// CONSTRUCTORS
+	// CONSTRUCTOR
 	UFlashlightComponent();
 	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
 	
-	// SET DEFAULT VALUES
+	// DECLARE DEFAULT VALUES - editable in BP
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "1- STATS")
 	float FlashRange = 1000;
 
@@ -37,11 +38,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="2 - PARTICLES")
 	FVector ParticleSize {1.0, 1.0, 1.0};
 
+	
+	// DECLARE FUNCTIONS 
 	UFUNCTION()
 	void FlashlightLineTrace();
 
-	AFlashlightCharacterBase* GetPlayerRef() const { return PlayerRef; }
-	USpotLightComponent* GetPlayerSpotlight() const { return PlayerSpotlight; }
+	// NOT BEING USED
+		// AFlashlightCharacterBase* GetPlayerRef() const { return PlayerRef; }
+		// USpotLightComponent* GetPlayerSpotlight() const { return PlayerSpotlight; }
 	
 
 protected:
@@ -49,10 +53,13 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
+
+	// DECLARE POINTER TO CHARACTER BASE CLASS - initialized in BeginPlay via Cast
 	UPROPERTY()
-	AFlashlightCharacterBase* PlayerRef;	// Variable PlayerRef points to base character address
-	
+	AFlashlightCharacterBase* PlayerRef;	
+
+	// DECLARE POINTER TO SPOTLIGHT COMP - initialized in BeginPlay as PlayerRef's spotlight comp
 	UPROPERTY()
-	USpotLightComponent* PlayerSpotlight;	// points to spot light component class
+	USpotLightComponent* PlayerSpotlight;
 	
 };

@@ -81,10 +81,9 @@ AFlashlightCharacterBase::AFlashlightCharacterBase()
 
 	// SETUP & DEACTIVATE FLASHLIGHT ACTOR COMPONENT - performs tick line trace when activated
 	FlashlightComponent = CreateDefaultSubobject<UFlashlightComponent>(TEXT("Flashlight"));
-	// FlashlightComponent->Deactivate();
-	// FlashlightComponent->SetComponentTickEnabled(false);
 	
 }
+
 
 
 void AFlashlightCharacterBase::BeginPlay()
@@ -107,6 +106,7 @@ void AFlashlightCharacterBase::BeginPlay()
 		AnimInstance->OnMontageEnded.AddDynamic(this, &AFlashlightCharacterBase::OnMontageFinished);
 
 
+	// BIND FUNCTIONS TO TIMELINE ATTRIBUTES/EVENTS
 	if (AimTimelineCurve)
 	{
 		FOnTimelineFloat onTimelineProgress;
@@ -121,7 +121,6 @@ void AFlashlightCharacterBase::BeginPlay()
 
 		AimTimeline.SetLooping(false);
 	}
-	
 }
 
 
@@ -162,9 +161,9 @@ void AFlashlightCharacterBase::SetupPlayerInputComponent(UInputComponent* Player
 	PlayerInputComponent->BindAction("Melee", IE_Pressed, this, &AFlashlightCharacterBase::Melee);
 }
 
+
 void AFlashlightCharacterBase::Move(const FInputActionValue& Value)
 {
-	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
 	if (Controller != nullptr)
@@ -296,7 +295,7 @@ void AFlashlightCharacterBase::StopUsingFlashlight()
 		FlashlightComponent->Deactivate();
 		FlashlightComponent->SetComponentTickEnabled(false);
 
-		AimTimeline.Reverse();	// reverses AimTimeline from current position
+		AimTimeline.Reverse();	// REVERSE AimTimeline FROM CURRENT POSITION
 	}
 }
 
@@ -322,12 +321,12 @@ void AFlashlightCharacterBase::HandleTimelineProgress(float Alpha)
 // HANDLES WHEN AIM TIMELINE FULLY PLAYS/REVERSES
 void AFlashlightCharacterBase::OnTimelineFinished()
 {
-	if(IsAiming)				// ENABLES AIM TIMELINE
+	if(IsAiming)				// ENABLES AIM TIMELINE TICK
 	{
 		FlashlightComponent->Activate();
 		FlashlightComponent->SetComponentTickEnabled(true);
 	}
 
 	else if(AimReverse)
-		AimReverse = false;		// DISABLES AIM TIMELINE
+		AimReverse = false;		// DISABLES AIM TIMELINE TICK
 }
