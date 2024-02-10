@@ -5,6 +5,7 @@
 #include "Engine/LocalPlayer.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/FlashlightComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/Controller.h"
@@ -80,7 +81,9 @@ AFlashlightCharacterBase::AFlashlightCharacterBase()
 
 	// SETUP & DEACTIVATE FLASHLIGHT ACTOR COMPONENT - performs tick line trace when activated
 	FlashlightComponent = CreateDefaultSubobject<UFlashlightComponent>(TEXT("Flashlight"));
-	FlashlightComponent->Deactivate();
+	// FlashlightComponent->Deactivate();
+	// FlashlightComponent->SetComponentTickEnabled(false);
+	
 }
 
 
@@ -102,6 +105,7 @@ void AFlashlightCharacterBase::BeginPlay()
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance != nullptr)
 		AnimInstance->OnMontageEnded.AddDynamic(this, &AFlashlightCharacterBase::OnMontageFinished);
+	
 }
 
 
@@ -112,6 +116,7 @@ void AFlashlightCharacterBase::Tick(float DeltaTime)
 
 
 //////// INPUT ////////
+
 void AFlashlightCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	// Set up action bindings
@@ -181,11 +186,17 @@ void AFlashlightCharacterBase::Look(const FInputActionValue& Value)
 // AIM FLASHLIGHT START - activates flashlight component 
 void AFlashlightCharacterBase::UseFlashlight()
 {
-	if (!IsAttacking)
+	if (!IsAttacking && FlashlightComponent)
 	{
 		IsAiming = true;
 		PlayAnimMontage(AimMontage, 0.01, FName("None"));
 		FlashlightComponent->Activate();
+		FlashlightComponent->SetComponentTickEnabled(true);
+	}
+
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("FlashightComp is null"));
 	}
 	
 }
@@ -197,6 +208,7 @@ void AFlashlightCharacterBase::StopUsingFlashlight()
 	{
 		IsAiming = false;
 		FlashlightComponent->Deactivate();
+		FlashlightComponent->SetComponentTickEnabled(false);
 	}
 }
 

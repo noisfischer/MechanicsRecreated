@@ -10,8 +10,15 @@
     <list default="true" id="e479e85a-0bb9-4eb3-80d2-5477b99b8b22" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.MechanicsRecreated.dir/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.MechanicsRecreated.dir/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Content/Blueprints/BP_FlashlightCharacter.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Blueprints/BP_FlashlightCharacter.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Blueprints/BP_FlashlightEnemy.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Blueprints/BP_FlashlightEnemy.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Blueprints/TestGameMode.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Blueprints/TestGameMode.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/David/Animations/ABP_FlashlightCharacter.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/David/Animations/ABP_FlashlightCharacter.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/TestLevel.umap" beforeDir="false" afterPath="$PROJECT_DIR$/Content/TestLevel.umap" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MechanicsRecreated/Private/Character/FlashlightCharacterBase.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MechanicsRecreated/Private/Character/FlashlightCharacterBase.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MechanicsRecreated/Public/Character/FlashlightCharacterBase.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MechanicsRecreated/Public/Character/FlashlightCharacterBase.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MechanicsRecreated/Private/Character/FlashlightEnemybase.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MechanicsRecreated/Private/Character/FlashlightEnemybase.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MechanicsRecreated/Private/Components/FlashlightComponent.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MechanicsRecreated/Private/Components/FlashlightComponent.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MechanicsRecreated/Public/Character/FlashlightEnemybase.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MechanicsRecreated/Public/Character/FlashlightEnemybase.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Source/MechanicsRecreated/Public/Components/FlashlightComponent.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MechanicsRecreated/Public/Components/FlashlightComponent.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -24,6 +31,9 @@
   </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
@@ -129,7 +139,8 @@
       <workItem from="1707332642445" duration="96000" />
       <workItem from="1707333589400" duration="662000" />
       <workItem from="1707523830713" duration="1849000" />
-      <workItem from="1707526416964" duration="4136000" />
+      <workItem from="1707526416964" duration="14051000" />
+      <workItem from="1707542978243" duration="297000" />
     </task>
     <servers />
   </component>

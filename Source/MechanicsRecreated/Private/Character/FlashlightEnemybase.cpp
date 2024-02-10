@@ -1,31 +1,33 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Character/FlashlightEnemybase.h"
+#include "Components/CapsuleComponent.h"
 
-// Sets default values
+// CONSTRUCTOR
 AFlashlightEnemybase::AFlashlightEnemybase()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	// Add custom tag for FlashlightComponent to recognize
+	// NOW PLAYER'S FlashlightComponent CANNOT DETECT ENEMY'S CAPSULE COMPONENT
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+
+	// TAG RECOGNIZED BY FlashlightComponent - used by Player Character
 	Tags.Add("enemy");
 	
-	// Initialize shield health widget component and attach to mesh
+	// SETUP WIDGET FOR ENEMY SHIELD STATUS
 	ShieldWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("ShieldWidget"));
 	ShieldWidget->SetupAttachment(this->GetMesh());
 	ShieldWidget->SetWidgetSpace(EWidgetSpace::World);
-
 }
 
-// Called when the game starts or when spawned
+
 void AFlashlightEnemybase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Assign User Widget assigned to widget component in BP child class
-	UserWidget = ShieldWidget->GetUserWidgetObject();
-	
+	// GETS THE WIDGET ASSIGNED TO THE WIDGET COMPONENT IN THE CHILD CLASS
+	if (ShieldWidget->GetUserWidgetObject() != nullptr)
+		UserWidget = ShieldWidget->GetUserWidgetObject();
 }
 
 // Called every frame
@@ -35,10 +37,17 @@ void AFlashlightEnemybase::Tick(float DeltaTime)
 }
 
 
+//////////// FUNCTIONS //////////////
+
+
+// INTERFACE EVENT - when mesh is hit by flashlight component line trace (called in FlashlightComponent.cpp)
 void AFlashlightEnemybase::FlashlightDamage_Implementation(float Damage)
 {
-	currentShield = FMath::Clamp(currentShield - Damage, 0, maxShield);	// Clamp currentShield value to min 0
+	// UPDATE SHIELD HEALTH - clamped between 0-100
+	currentShield = FMath::Clamp(currentShield - Damage, 0, maxShield);
 
+
+	// IF SHIELD HEALTH IS DEPLETED - hide shield health widget and play montage
 	if (UserWidget && currentShield == 0)
 	{
 		Tags.Add("shieldDown");								// Stops flashlight component line trace hit
@@ -47,6 +56,7 @@ void AFlashlightEnemybase::FlashlightDamage_Implementation(float Damage)
 		PlayAnimMontage(shieldBreakMontage, 1.0, "None");
 	}
 
+	// IF SHIELD HEALTH NOT DEPLETED, 
 	if (UserWidget && UserWidget->Implements<UDamageInterface>() && currentShield > -1)
 	{
 		Execute_FlashlightDamage(UserWidget, currentShield);	// Lower shield health bar widget
@@ -55,16 +65,17 @@ void AFlashlightEnemybase::FlashlightDamage_Implementation(float Damage)
 }
 
 
-
+// INTERFACE EVENT - called in FlashlightCharacterBase's WeaponCollision OnBeginOverlap
 void AFlashlightEnemybase::MeleeDamage_Implementation()
 {
 	EnemyDead = true;
-	this->GetMesh()->SetSimulatePhysics(true);
+	GetMesh()->SetSimulatePhysics(true);
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 
 
-
+// PLAYS MONTAGE WHEN CALLED
 float AFlashlightEnemybase::PlayAnimMontage(UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName)
 {
 	float MontageLength = 0.0f;		// Default to 0, indicating montage did not play
@@ -88,9 +99,10 @@ float AFlashlightEnemybase::PlayAnimMontage(UAnimMontage* AnimMontage, float InP
 }
 
 
-void AFlashlightEnemybase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+
+/*void AFlashlightEnemybase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-}
+}*/
 
 

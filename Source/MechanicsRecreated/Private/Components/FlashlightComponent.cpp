@@ -10,7 +10,7 @@
 #include "CollisionDebugDrawingPublic.h"
 #include "Character/FlashlightCharacterBase.h"
 
-// Sets default values for this component's properties
+// CONSTRUCTORS
 UFlashlightComponent::UFlashlightComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
@@ -20,15 +20,15 @@ UFlashlightComponent::UFlashlightComponent()
 void UFlashlightComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	this->Deactivate();												// Start with flashlight disables
-	this->SetComponentTickEnabled(false);
 	
 	PlayerRef = Cast<AFlashlightCharacterBase>(GetOwner());		// Get child class of flashlight character base class (player character)
 	if(PlayerRef)
 	{
 		PlayerSpotlight = PlayerRef->FlashlightSpotLight;			// Get spotlight attached to character's flashlight mesh
 	}
+
+	this->SetComponentTickEnabled(false);
+	
 }
 
 
@@ -36,18 +36,17 @@ void UFlashlightComponent::BeginPlay()
 void UFlashlightComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
+	
 	if (this->IsActive() && PlayerSpotlight)						// if component is active and PlayerSpotlight is valid, call line trace function
 	{
 		FlashlightLineTrace();
 	}
-	
 }
 
 
 void UFlashlightComponent::FlashlightLineTrace()
 {
-
+	
 	if (PlayerSpotlight && PlayerRef)
 	{
 		// Start and end vectors of line trace
@@ -66,7 +65,7 @@ void UFlashlightComponent::FlashlightLineTrace()
 			if (HitActor && HitActor->ActorHasTag(FName("enemy")) && !HitActor->ActorHasTag(FName("shieldDown")) && HitActor->GetClass()->ImplementsInterface(UDamageInterface::StaticClass()))
 			{
 				
-				/*DrawDebugLine(
+				DrawDebugLine(
 					GetWorld(),
 					StartLocation,
 					EndLocation,
@@ -75,7 +74,7 @@ void UFlashlightComponent::FlashlightLineTrace()
 					0.2f,
 					0, // Depth priority
 					1.0f
-				);*/
+				);
 				
 				Execute_FlashlightDamage(HitActor, Damage);		// Interface event shared between this and base enemy class
 
@@ -92,7 +91,7 @@ void UFlashlightComponent::FlashlightLineTrace()
 			else
 			{
 				// Non-Hit line
-				/*DrawDebugLine(
+				DrawDebugLine(
 					GetWorld(),
 					StartLocation,
 					EndLocation,
@@ -102,7 +101,6 @@ void UFlashlightComponent::FlashlightLineTrace()
 					0, // Depth priority
 					1.0f
 					);
-				*/
 			}
 		}
 		

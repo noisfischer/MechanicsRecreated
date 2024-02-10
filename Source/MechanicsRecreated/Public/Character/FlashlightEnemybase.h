@@ -43,8 +43,6 @@ protected:
 
 public:	
 	virtual void Tick(float DeltaTime) override;
-	
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	// Enemy receives shield damage as does widget health bar
 	virtual void FlashlightDamage_Implementation(float Damage) override;
@@ -54,5 +52,7 @@ public:
 
 	// Plays hit reaction when enemy's shield is broken
 	virtual float PlayAnimMontage(UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName) override;
+
+	/*virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;*/
 
 };
