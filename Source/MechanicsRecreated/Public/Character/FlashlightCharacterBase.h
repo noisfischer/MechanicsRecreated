@@ -181,6 +181,10 @@ public:
 
 
 private:
+
+	UPROPERTY()
+	bool AimReverse = false;
+	
 	// INPUT ACTIONS SPECIFIED IN PROJECT INPUT SETTINGS
 	// BINDINGS IN SetupPlayerInputComponent IMPLEMENTATION IN CPP
 	void UseFlashlight();			// PRESSED LEFT MOUSE BUTTON

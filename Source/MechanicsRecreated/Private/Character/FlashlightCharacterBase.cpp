@@ -128,8 +128,9 @@ void AFlashlightCharacterBase::BeginPlay()
 void AFlashlightCharacterBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
-	AimTimeline.TickTimeline(DeltaTime);
+
+	if (IsAiming || AimReverse)
+		AimTimeline.TickTimeline(DeltaTime);
 }
 
 
@@ -198,45 +199,6 @@ void AFlashlightCharacterBase::Look(const FInputActionValue& Value)
 
 
 
-/////// FUNCTION IMPLEMENTATIONS ///////
-
-
-// AIM FLASHLIGHT START - activates flashlight component 
-void AFlashlightCharacterBase::UseFlashlight()
-{
-	if (!IsAttacking && FlashlightComponent && AimTimelineCurve)
-	{
-		IsAiming = true;
-		PlayAnimMontage(AimMontage, 0.01, FName("None"));
-		
-		FOnTimelineFloat ProgressFunction;
-		ProgressFunction.BindUFunction(this, FName("HandleTimelineProgress"));
-		AimTimeline.AddInterpFloat(AimTimelineCurve, ProgressFunction);
-		AimTimeline.SetLooping(false);
-		AimTimeline.Play();
-	}
-
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Use Flashlight condition failed!"));
-	}
-	
-}
-
-// AIM FLASHLIGHT END - deactivates flashlight component
-void AFlashlightCharacterBase::StopUsingFlashlight()
-{
-	if (IsAiming)
-	{
-		IsAiming = false;
-		FlashlightComponent->Deactivate();
-		FlashlightComponent->SetComponentTickEnabled(false);
-
-		AimTimeline.Reverse();
-	}
-}
-
-
 // FOR PLAYING MONTAGES USING PLAYER CHARACTER'S ANIMINSTANCE
 float AFlashlightCharacterBase::PlayAnimMontage(UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName)
 {
@@ -258,6 +220,9 @@ float AFlashlightCharacterBase::PlayAnimMontage(UAnimMontage* AnimMontage, float
 	return MontageLength;
 }
 
+
+
+//////// MELEE FUNCTIONALITY ///////
 
 // PLAY MELEE MONTAGE - after passing conditions
 void AFlashlightCharacterBase::Melee()
@@ -291,24 +256,60 @@ void AFlashlightCharacterBase::OnWeaponCollisionOverlap(UPrimitiveComponent* Ove
 	}
 }
 
+
 // ALLOWS PLAYER TO MELEE AGAIN ONCE MELEE MONTAGE IS COMPLETE
 void AFlashlightCharacterBase::OnMontageFinished(UAnimMontage* Montage, bool bMontageInterrupted)
 {
 		IsAttacking = false;
 }
 
-// UPDATES CAMERA & FLASHLIGHT PROPERTIES EVERY TICK DURING AIM TIMELINE
+
+
+////// FLASHLIGHT FUNCTIONALITY ////////
+
+// AIM FLASHLIGHT START - activates flashlight component 
+void AFlashlightCharacterBase::UseFlashlight()
+{
+	if (!IsAttacking && FlashlightComponent && AimTimelineCurve)
+	{
+		IsAiming = true;
+		
+		PlayAnimMontage(AimMontage, 0.01, FName("None"));
+		
+		FOnTimelineFloat ProgressFunction;
+		ProgressFunction.BindUFunction(this, FName("HandleTimelineProgress"));
+		AimTimeline.AddInterpFloat(AimTimelineCurve, ProgressFunction);
+		AimTimeline.SetLooping(false);
+		AimTimeline.Play();
+	}
+	
+}
+
+// AIM FLASHLIGHT END - deactivates flashlight component
+void AFlashlightCharacterBase::StopUsingFlashlight()
+{
+	if (IsAiming)
+	{
+		IsAiming = false;
+		AimReverse = true;
+
+		FlashlightComponent->Deactivate();
+		FlashlightComponent->SetComponentTickEnabled(false);
+
+		AimTimeline.Reverse();	// reverses AimTimeline from current position
+	}
+}
+
+
+// UPDATES CAMERA & FLASHLIGHT PROPERTIES EVERY TICK OF AIM TIMELINE - called in Tick Function
 void AFlashlightCharacterBase::HandleTimelineProgress(float Alpha)
 {
-	// LERP the FOV from start to end using the timeline's alpha
 	float NewFOV = FMath::Lerp(StartFOV, EndFOV, Alpha);
 	FollowCamera->SetFieldOfView(NewFOV);
-
-	// LERP the flashlight intensity
+	
 	float NewIntensity = FMath::Lerp(StartLightIntensity, EndLightIntensity, Alpha);
 	FlashlightSpotLight->SetIntensity(NewIntensity);
-
-	// LERP the outer cone angle
+	
 	float NewOuterConeAngle = FMath::Lerp(StartOuterConeAngle, EndOuterConeAngle, Alpha);
 	FlashlightSpotLight->SetOuterConeAngle(NewOuterConeAngle);
 	
@@ -317,11 +318,16 @@ void AFlashlightCharacterBase::HandleTimelineProgress(float Alpha)
 }
 
 
+
+// HANDLES WHEN AIM TIMELINE FULLY PLAYS/REVERSES
 void AFlashlightCharacterBase::OnTimelineFinished()
 {
-	if(IsAiming)
+	if(IsAiming)				// ENABLES AIM TIMELINE
 	{
 		FlashlightComponent->Activate();
 		FlashlightComponent->SetComponentTickEnabled(true);
 	}
+
+	else if(AimReverse)
+		AimReverse = false;		// DISABLES AIM TIMELINE
 }
