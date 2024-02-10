@@ -9,7 +9,7 @@
   <component name="ChangeListManager">
     <list default="true" id="e479e85a-0bb9-4eb3-80d2-5477b99b8b22" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.MechanicsRecreated.dir/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.MechanicsRecreated.dir/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Content/David/Animations/David_Attack_Montage.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/David/Animations/David_Attack_Montage.uasset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Content/Blueprints/BP_FlashlightCharacter.uasset" beforeDir="false" afterPath="$PROJECT_DIR$/Content/Blueprints/BP_FlashlightCharacter.uasset" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MechanicsRecreated/Private/Character/FlashlightCharacterBase.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MechanicsRecreated/Private/Character/FlashlightCharacterBase.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Source/MechanicsRecreated/Public/Character/FlashlightCharacterBase.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MechanicsRecreated/Public/Character/FlashlightCharacterBase.h" afterDir="false" />
     </list>
@@ -129,7 +129,7 @@
       <workItem from="1707332642445" duration="96000" />
       <workItem from="1707333589400" duration="662000" />
       <workItem from="1707523830713" duration="1849000" />
-      <workItem from="1707526416964" duration="1017000" />
+      <workItem from="1707526416964" duration="4136000" />
     </task>
     <servers />
   </component>

@@ -68,12 +68,10 @@ public:
 	AFlashlightCharacterBase();
 	
 
-	// MEMBERS
+	/////// MEMBERS /////////
+	
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Flashlight")
-	USpotLightComponent* FlashlightSpotLight;
-
-	// attributes for Blueprint Timeline for UseFlashlight trigger
+	// DEFAULT CAMERA PROPERTIES FOR AIM TIMELINE
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="CameraProperties")
 	float StartFOV = 90.0f;
 
@@ -86,6 +84,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="CameraProperties")
 	float EndCameraPosition = 70.0f;
 
+	
+	// SPOTLIGHT FOR FLASHLIGHT MESH
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Flashlight")
+	USpotLightComponent* FlashlightSpotLight;
+
+	
+	// DEFAULT SPOTLIGHT PROPERTIES FOR AIM TIMELINE
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="SpotLightProperties")
 	float StartLightIntensity = 20000.0f;
 
@@ -101,7 +106,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="SpotLightProperties")
 	float StartInnerConeAngle = 10.0f;
 
-	// Declare montage attributes
+	
+	// MONTAGE DECLARATIONS/INITIALIZATIONS
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Animations")
 	UAnimMontage* MeleeMontage;
 
@@ -110,58 +116,65 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Animations")
 	UAnimMontage* AimMontage;
+
 	
+	// CONDITIONALS TO PREVENT MONTAGE INTERRUPTIONS - no spamming melee 
 	bool IsAttacking = false;
 	bool IsAiming = false;
 
-	// FUNCTIONS
+	
 
+	////////// FUNCTIONS /////////////
+	
+	
+	
+	// HANDLES WEAPON CAPSULE COLLISION COMPONENT - BOUND TO WeaponCollision COMPONENT ON BEGIN PLAY
 	UFUNCTION()
-	void OnWeaponCollisionOverlap(
+	void OnWeaponCollisionOverlap
+		(
 		UPrimitiveComponent* OverlappedComponent,
 		AActor* OtherActor,
 		UPrimitiveComponent* OtherComp,
 		int32 OtherBodyIndex,
 		bool bFromSweep,
-		const FHitResult& SweepResult);
+		const FHitResult& SweepResult
+		);
 
-	UFUNCTION()
-	void OnMontageFinished(UAnimMontage* Montage, bool bInterrupted);
 	
+	// BOUND TO UAnimInstance IN CPP - DEFINES WHAT HAPPENS WHEN MONTAGE IS FINISHED PLAYING
+	UFUNCTION()
+	void OnMontageFinished(UAnimMontage* Montage, bool bMontageInterrupted);
+	
+
+	// OVERRIDEN FUNCTION FOR PLAYING A MONTAGE ON A VALID UAnimInstance
 	virtual float PlayAnimMontage(UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName) override;
+	
+
+	// ACTIVATE/DEACTIVATE WeaponCollision COMPONENT - CALLED IN MeleeAnimNotify.cpp
+	virtual void ActivateWeapon();
+	virtual void DeactivateWeapon();
 
 	virtual void Tick(float DeltaTime) override;
 
-	virtual void ActivateWeapon();
-	virtual void DeactivateWeapon();
-	
+
+private:
+	// INPUT ACTIONS SPECIFIED IN PROJECT INPUT SETTINGS
+	// BINDINGS IN SetupPlayerInputComponent IMPLEMENTATION IN CPP
+	void UseFlashlight();			// PRESSED LEFT MOUSE BUTTON
+	void StopUsingFlashlight();		// RELEASED LEFT MOUSE BUTTON
+	void Melee();					// PRESSED RIGHT MOUSE BUTTON
 
 protected:
-
-	/** Called for movement input */
+	
 	void Move(const FInputActionValue& Value);
-
-	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
-	
-	// Input actions specified in editor Project Settings
-	void UseFlashlight();			// start left-click
-	void StopUsingFlashlight();		// end left-click
-	void Melee();					// right-click
-	
-	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	
-	// To add mapping context
 	virtual void BeginPlay() override;
 
 	
 public:	
 	
-	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
-	
-	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
 };

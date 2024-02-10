@@ -16,26 +16,25 @@
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
+
+// CONSTRUCTOR INITIALIZATION
 AFlashlightCharacterBase::AFlashlightCharacterBase()
 {
 
 	PrimaryActorTick.bCanEverTick = true;
 	
-	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
-		
-	// Don't rotate when the controller rotates. Let that just affect the camera.
+	
+	// CAMERA SETTINGS - player always faces forward
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
+	GetCharacterMovement()->bOrientRotationToMovement = false; 
+	GetCharacterMovement()->bUseControllerDesiredRotation = true; 
+	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); 
 
-	// Configure character movement
-	GetCharacterMovement()->bOrientRotationToMovement = false; // Character uses controller rotation
-	GetCharacterMovement()->bUseControllerDesiredRotation = true; // Character uses controller rotation
-	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); // ...at this rotation rate
 
-	// Note: For faster iteration times these variables, and many more, can be tweaked in the Character Blueprint
-	// instead of recompiling to adjust them
+	// SET DEFAULT CHAR MOVEMENT VALUES
 	GetCharacterMovement()->JumpZVelocity = 700.f;
 	GetCharacterMovement()->AirControl = 0.35f;
 	GetCharacterMovement()->MaxWalkSpeed = 500.f;
@@ -43,74 +42,67 @@ AFlashlightCharacterBase::AFlashlightCharacterBase()
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 	GetCharacterMovement()->BrakingDecelerationFalling = 1500.0f;
 
-	// Create a camera boom (pulls in towards the player if there is a collision)
+	
+	// SETUP CAMERA BOOM COMPONENT AND SET DEFAULT VALUES
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->TargetArmLength = 400.0f; // The camera follows at this distance behind the character	
-	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
+	CameraBoom->TargetArmLength = 400.0f;
+	CameraBoom->bUsePawnControlRotation = true; 
 
-	// Create a follow camera
+	// SETUP FOLLOW CAMERA AND SET DEFAULT VALUES
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
-	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
-	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
+	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
+	FollowCamera->bUsePawnControlRotation = false;
+	
 
-	// Initialize the static mesh components and attach them to the skeletal mesh in left hand socket
+	// SETUP FLASHLIGHT MESH COMPONENT ATTACH TO MESH SKELETON SOCKET
 	FlashlightMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("FlashlightMesh"));
 	FlashlightMesh->SetupAttachment(GetMesh(), "LeftHandSocket");
 
-	// Initialize spotlight and attach it to front of flashlight mesh
+	// SETUP SPOTLIGHT COMPONENT AND SET DEFAULT VALUES
 	FlashlightSpotLight = CreateDefaultSubobject<USpotLightComponent>(TEXT("FlashlightSpotlight"));
 	FlashlightSpotLight->SetupAttachment(FlashlightMesh, "Bulb");
-	
-	// Default spotlight settings
-	FlashlightSpotLight->Intensity = 10000.0f;
-	FlashlightSpotLight->InnerConeAngle = 10.0f;
-	FlashlightSpotLight->OuterConeAngle = 20.0f;
+	FlashlightSpotLight->Intensity = StartLightIntensity;
+	FlashlightSpotLight->InnerConeAngle = StartInnerConeAngle;
+	FlashlightSpotLight->OuterConeAngle = StartOuterConeAngle;
 	FlashlightSpotLight->AttenuationRadius = 1000.0f;
+	
 
-	// Initialize weapon and attach it skeletal mesh in right hand socket
+	// SETUP WEAPON MESH COMPONENT
 	WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
 	WeaponMesh->SetupAttachment(GetMesh(), "RightHandSocket");
-	
-	// Initialize weapon capsule collision
+
+	// SETUP WEAPON COLLISION COMPONENT
 	WeaponCollision = CreateDefaultSubobject<UCapsuleComponent>(TEXT("WeaponCollision"));
 	WeaponCollision->SetupAttachment(WeaponMesh);
+	WeaponCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	
 
-	// Initialize flashlight component
+	// SETUP & DEACTIVATE FLASHLIGHT ACTOR COMPONENT - performs tick line trace when activated
 	FlashlightComponent = CreateDefaultSubobject<UFlashlightComponent>(TEXT("Flashlight"));
+	FlashlightComponent->Deactivate();
 }
 
 
 void AFlashlightCharacterBase::BeginPlay()
 {
-	// Call the base class  
 	Super::BeginPlay();
 	
-	//Add Input Mapping Context
+	// SETUP INPUT MAPPINGS
 	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
-	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
-		{
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
-		}
-	}
+	
 
-	// DEACTIVATE FLASHLIGHT COMPONENT AND WEAPON COLLISION
-	FlashlightComponent->Deactivate();
-	WeaponCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-	// BIND FUNCTION TO OVERLAP EVENT FOR WEAPON COLLISION
+	// BINDING FOR WEAPON COLLISION OnBeginOverlap
 	WeaponCollision->OnComponentBeginOverlap.AddDynamic(this, &AFlashlightCharacterBase::OnWeaponCollisionOverlap);
+	
 
-	// BIND FUNCTION TO MONTAGE ENDED
+	// RETRIEVE PLAYER CHARACTER'S ANIMATION INSTANCE & BIND OnMontageFinished FUNCTION TO MONTAGE COMPLETION
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance != nullptr)
-	{
 		AnimInstance->OnMontageEnded.AddDynamic(this, &AFlashlightCharacterBase::OnMontageFinished);
-	}
 }
-
-
 
 
 void AFlashlightCharacterBase::Tick(float DeltaTime)
@@ -119,9 +111,7 @@ void AFlashlightCharacterBase::Tick(float DeltaTime)
 }
 
 
-//////////////////////////////////////////////////////////////////////////
-// Input
-
+//////// INPUT ////////
 void AFlashlightCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	// Set up action bindings
@@ -142,7 +132,7 @@ void AFlashlightCharacterBase::SetupPlayerInputComponent(UInputComponent* Player
 		UE_LOG(LogTemplateCharacter, Error, TEXT("'%s' Failed to find an Enhanced Input component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
 	}
 
-	// Bind the input actions
+	// BIND INPUT ACTIONS CREATE IN PROJECT SETTINGS TO FUNCTIONS
 	PlayerInputComponent->BindAction("UseFlashlight", IE_Pressed, this, &AFlashlightCharacterBase::UseFlashlight);
 	PlayerInputComponent->BindAction("UseFlashlight", IE_Released, this, &AFlashlightCharacterBase::StopUsingFlashlight);
 	PlayerInputComponent->BindAction("Melee", IE_Pressed, this, &AFlashlightCharacterBase::Melee);
@@ -173,7 +163,6 @@ void AFlashlightCharacterBase::Move(const FInputActionValue& Value)
 
 void AFlashlightCharacterBase::Look(const FInputActionValue& Value)
 {
-	// input is a Vector2D
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
 
 	if (Controller != nullptr)
@@ -185,7 +174,11 @@ void AFlashlightCharacterBase::Look(const FInputActionValue& Value)
 }
 
 
-// Flashlight Ability using Left Click
+
+/////// FUNCTION IMPLEMENTATIONS ///////
+
+
+// AIM FLASHLIGHT START - activates flashlight component 
 void AFlashlightCharacterBase::UseFlashlight()
 {
 	if (!IsAttacking)
@@ -197,6 +190,7 @@ void AFlashlightCharacterBase::UseFlashlight()
 	
 }
 
+// AIM FLASHLIGHT END - deactivates flashlight component
 void AFlashlightCharacterBase::StopUsingFlashlight()
 {
 	if (FlashlightComponent->IsActive())
@@ -207,6 +201,7 @@ void AFlashlightCharacterBase::StopUsingFlashlight()
 }
 
 
+// FOR PLAYING MONTAGES USING PLAYER CHARACTER'S ANIMINSTANCE
 float AFlashlightCharacterBase::PlayAnimMontage(UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName)
 {
 	float MontageLength = 0.0f;	// Default length
@@ -228,9 +223,7 @@ float AFlashlightCharacterBase::PlayAnimMontage(UAnimMontage* AnimMontage, float
 }
 
 
-/////////////////////////// MELEE ////////////////////////////////
-
-// Melee using right click
+// PLAY MELEE MONTAGE - after passing conditions
 void AFlashlightCharacterBase::Melee()
 {
 	if(!IsAttacking && !IsAiming)
@@ -240,28 +233,31 @@ void AFlashlightCharacterBase::Melee()
 	}
 }
 
+// ACTIVATE WEAPON COLLISION COMPONENT - called in MeleeAnimNotify.cpp
 void AFlashlightCharacterBase::ActivateWeapon()
 {
 	WeaponCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 }
 
+// DEACTIVATE WEAPON COLLISION COMPONENT - called in MeleeAnimNotify.cpp
 void AFlashlightCharacterBase::DeactivateWeapon()
 {
 	WeaponCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 
-// Bound to WeaponCollision capsule collision component on Weapon Mesh (look at BeginPlay)
+
+// BOUND TO WEAPON COLLISION COMPONENT'S OnBeginOverlap EVENT
 void AFlashlightCharacterBase::OnWeaponCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if(OtherActor->ActorHasTag("shieldDown"))
+	if(OtherActor->ActorHasTag("shieldDown") && OtherActor->Implements<UDamageInterface>())
 	{
-		Execute_MeleeDamage(OtherActor);
+		Execute_MeleeDamage(OtherActor);	// INTERFACE EVENT CALLED IN OtherActor OBJECT - FlashlightEnemyBase.cpp
 	}
 }
 
-
-void AFlashlightCharacterBase::OnMontageFinished(UAnimMontage* Montage, bool bInterrupted)
+// ALLOWS PLAYER TO MELEE AGAIN ONCE MELEE MONTAGE IS COMPLETE
+void AFlashlightCharacterBase::OnMontageFinished(UAnimMontage* Montage, bool bMontageInterrupted)
 {
 		IsAttacking = false;
 }
