@@ -95,13 +95,14 @@ void AFlashlightCharacterBase::BeginPlay()
 		}
 	}
 
-	// Deactivate flashlight component and weapon collision
+	// DEACTIVATE FLASHLIGHT COMPONENT AND WEAPON COLLISION
 	FlashlightComponent->Deactivate();
 	WeaponCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	// Activate weapon collision
+	// BIND FUNCTION TO OVERLAP EVENT FOR WEAPON COLLISION
 	WeaponCollision->OnComponentBeginOverlap.AddDynamic(this, &AFlashlightCharacterBase::OnWeaponCollisionOverlap);
 
+	// BIND FUNCTION TO MONTAGE ENDED
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance != nullptr)
 	{
@@ -234,10 +235,19 @@ void AFlashlightCharacterBase::Melee()
 {
 	if(!IsAttacking && !IsAiming)
 	{
-		WeaponCollision->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		IsAttacking = true;
 		PlayAnimMontage(MeleeMontage, MeleeMontageSpeed, FName("None"));
 	}
+}
+
+void AFlashlightCharacterBase::ActivateWeapon()
+{
+	WeaponCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+}
+
+void AFlashlightCharacterBase::DeactivateWeapon()
+{
+	WeaponCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 
@@ -253,11 +263,5 @@ void AFlashlightCharacterBase::OnWeaponCollisionOverlap(UPrimitiveComponent* Ove
 
 void AFlashlightCharacterBase::OnMontageFinished(UAnimMontage* Montage, bool bInterrupted)
 {
-	if (Montage == MeleeMontage || bInterrupted)
-	{
-		// Here you can set your variable, disable collision, or perform any other necessary actions.
-		WeaponCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		IsAttacking = false;
-	}
 }
-

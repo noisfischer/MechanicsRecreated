@@ -64,15 +64,16 @@ class MECHANICSRECREATED_API AFlashlightCharacterBase : public ACharacter, publi
 
 	
 public:
-	// Sets default values for this character's properties
+	// CONSTRUCTOR
 	AFlashlightCharacterBase();
+	
 
-	virtual void Tick(float DeltaTime) override;
+	// MEMBERS
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Flashlight")
 	USpotLightComponent* FlashlightSpotLight;
 
-	// Variables for Blueprint Timeline for UseFlashlight trigger
+	// attributes for Blueprint Timeline for UseFlashlight trigger
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="CameraProperties")
 	float StartFOV = 90.0f;
 
@@ -100,7 +101,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="SpotLightProperties")
 	float StartInnerConeAngle = 10.0f;
 
-	// Assign Montages for Aim & Melee
+	// Declare montage attributes
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Animations")
 	UAnimMontage* MeleeMontage;
 
@@ -109,14 +110,30 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Animations")
 	UAnimMontage* AimMontage;
+	
+	bool IsAttacking = false;
+	bool IsAiming = false;
+
+	// FUNCTIONS
 
 	UFUNCTION()
-	void OnWeaponCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	void OnWeaponCollisionOverlap(
+		UPrimitiveComponent* OverlappedComponent,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex,
+		bool bFromSweep,
+		const FHitResult& SweepResult);
 
 	UFUNCTION()
 	void OnMontageFinished(UAnimMontage* Montage, bool bInterrupted);
 	
 	virtual float PlayAnimMontage(UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName) override;
+
+	virtual void Tick(float DeltaTime) override;
+
+	virtual void ActivateWeapon();
+	virtual void DeactivateWeapon();
 	
 
 protected:
@@ -138,10 +155,6 @@ protected:
 	// To add mapping context
 	virtual void BeginPlay() override;
 
-
-private:
-	bool IsAttacking = false;
-	bool IsAiming = false;
 	
 public:	
 	
