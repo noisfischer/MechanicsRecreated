@@ -14,6 +14,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "Components/SpotLightComponent.h"
+#include "GameFramework/SimpleReticle.h"
 
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
@@ -122,6 +123,16 @@ void AFlashlightCharacterBase::BeginPlay()
 
 		AimTimeline.SetLooping(false);
 	}
+			
+	if (AimWidgetClass != nullptr)
+	{
+		AimWidget = CreateWidget<UUserWidget>(GetWorld(), AimWidgetClass);
+		if (AimWidget != nullptr)
+		{
+			AimWidget->AddToViewport();
+			AimWidget->SetVisibility(ESlateVisibility::Hidden); // Initially hidden
+		}
+	}
 }
 
 
@@ -161,6 +172,10 @@ void AFlashlightCharacterBase::SetupPlayerInputComponent(UInputComponent* Player
 	PlayerInputComponent->BindAction("UseFlashlight", IE_Released, this, &AFlashlightCharacterBase::StopUsingFlashlight);
 	PlayerInputComponent->BindAction("Melee", IE_Pressed, this, &AFlashlightCharacterBase::Melee);
 	PlayerInputComponent->BindAction("Shoot", IE_Pressed, this, &AFlashlightCharacterBase::Shoot);
+	PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &AFlashlightCharacterBase::StartAim);
+	PlayerInputComponent->BindAction("Aim", IE_Released, this, &AFlashlightCharacterBase::StopAim);
+
+
 }
 
 
@@ -264,9 +279,20 @@ void AFlashlightCharacterBase::Shoot()
 		}
 	
 	
-		FVector StartLocation = FlashlightSpotLight->GetComponentLocation();
-		FVector ForwardVector = FlashlightSpotLight->GetForwardVector();
-		FVector EndLocation = StartLocation + (ForwardVector * 1000);
+		FVector StartLocation = WeaponMesh->GetSocketLocation("Barrel"); //FlashlightSpotLight->GetComponentLocation();
+		FVector ForwardVector = WeaponMesh->GetForwardVector();
+		FVector EndLocation = StartLocation + (ForwardVector * -10000);
+
+		DrawDebugLine(
+					GetWorld(),
+					StartLocation,
+					EndLocation,
+					FColor::Red, // Green color for the line
+					false,
+					0.2f,
+					0, // Depth priority
+					1.0f
+				);
 
 		FHitResult HitResult;
 		FCollisionQueryParams QueryParams;
@@ -274,10 +300,15 @@ void AFlashlightCharacterBase::Shoot()
 
 		if (GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECC_Camera, QueryParams))
 		{
+
+			
 			AActor* HitActor = HitResult.GetActor();
 			if (HitActor && HitActor->ActorHasTag(FName("shieldDown")) && HitActor->GetClass()->ImplementsInterface(UDamageInterface::StaticClass()))
 			{
-				Execute_BulletDamage(HitActor);
+				USkeletalMeshComponent* EnemyMesh = Cast<USkeletalMeshComponent>(HitResult.Component.Get());
+				FName ClosestBoneName = EnemyMesh->FindClosestBone(HitResult.Location);
+				UE_LOG(LogTemp, Warning, TEXT("Closest bone: %s"), *ClosestBoneName.ToString());
+				Execute_BulletDamage(HitActor, ClosestBoneName, GetActorForwardVector());
 
 				UGameplayStatics::SpawnEmitterAtLocation(
 					GetWorld(),
@@ -295,6 +326,7 @@ void AFlashlightCharacterBase::Shoot()
 	
 	
 }
+
 
 // ACTIVATE WEAPON COLLISION COMPONENT - called in MeleeAnimNotify.cpp
 void AFlashlightCharacterBase::ActivateWeapon()
@@ -326,6 +358,53 @@ void AFlashlightCharacterBase::OnMontageFinished(UAnimMontage* Montage, bool bMo
 }
 
 
+/////// AIM FUNCTIONALITY ///////
+
+void AFlashlightCharacterBase::StartAim()
+{
+	if (!IsAttacking && AimTimelineCurve)
+	{
+		IsAiming = true;
+
+		PlayAnimMontage(AimMontage, 0.01, FName("None"));
+		
+		FOnTimelineFloat ProgressFunction;
+		ProgressFunction.BindUFunction(this, FName("HandleTimelineProgress"));
+		AimTimeline.AddInterpFloat(AimTimelineCurve, ProgressFunction);
+		AimTimeline.SetLooping(false);
+		AimTimeline.Play();
+
+		if (AimWidget != nullptr)
+		{
+			AimWidget->SetVisibility(ESlateVisibility::Visible);
+		}
+	}
+}
+
+void AFlashlightCharacterBase::StopAim()
+{
+	if (IsAiming)
+	{
+		IsAiming = false;
+		AimReverse = true;
+		
+
+		AimTimeline.Reverse();	// REVERSE AimTimeline FROM CURRENT POSITION
+
+		// Get the animation instance of the character
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+		if (AnimInstance)
+		{
+			// Stop the aim montage with a blend out time, e.g., 0.25 seconds
+			AnimInstance->Montage_Stop(0.25f, AimMontage);
+		}
+		if (AimWidget != nullptr)
+		{
+			AimWidget->SetVisibility(ESlateVisibility::Hidden);
+		}
+	}
+}
+
 
 ////// FLASHLIGHT FUNCTIONALITY ////////
 
@@ -335,6 +414,7 @@ void AFlashlightCharacterBase::UseFlashlight()
 	if (!IsAttacking && FlashlightComponent && AimTimelineCurve)
 	{
 		IsAiming = true;
+		FlashlightActive = true;
 		
 		PlayAnimMontage(AimMontage, 0.01, FName("None"));
 		
@@ -353,6 +433,7 @@ void AFlashlightCharacterBase::StopUsingFlashlight()
 	if (IsAiming)
 	{
 		IsAiming = false;
+		FlashlightActive = false;
 		AimReverse = true;
 
 		
@@ -394,7 +475,7 @@ void AFlashlightCharacterBase::HandleTimelineProgress(float Alpha)
 // HANDLES WHEN AIM TIMELINE FULLY PLAYS/REVERSES
 void AFlashlightCharacterBase::OnTimelineFinished()
 {
-	if(IsAiming)				// ENABLES AIM TIMELINE TICK
+	if(FlashlightActive)				// ENABLES AIM TIMELINE TICK
 	{
 		FlashlightComponent->Activate();
 		FlashlightComponent->SetComponentTickEnabled(true);

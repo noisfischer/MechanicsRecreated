@@ -2,6 +2,7 @@
 
 #include "Character/FlashlightEnemybase.h"
 #include "Components/CapsuleComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 // CONSTRUCTOR
 AFlashlightEnemybase::AFlashlightEnemybase()
@@ -73,12 +74,15 @@ void AFlashlightEnemybase::MeleeDamage_Implementation()
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
-void AFlashlightEnemybase::BulletDamage_Implementation()
+void AFlashlightEnemybase::BulletDamage_Implementation(FName ClosestBoneName, FVector ImpulseDirection)
 {
-	EnemyDead = true;
-	GetMesh()->SetSimulatePhysics(true);
-	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	// PlayAnimMontage(shieldBreakMontage, 2, "None");
+	if(!EnemyDead)
+	{
+		EnemyDead = true;
+		GetMesh()->SetSimulatePhysics(true);
+		GetMesh()->AddImpulseToAllBodiesBelow(ImpulseDirection * 1000, ClosestBoneName, true, true);
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
 }
 
 

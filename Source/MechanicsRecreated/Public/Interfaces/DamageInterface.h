@@ -25,5 +25,5 @@ public:
 	void MeleeDamage();
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	void BulletDamage();
+	void BulletDamage(FName Bone, FVector ImpulseDirection);
 };

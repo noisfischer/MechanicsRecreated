@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Blueprint/UserWidget.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SpotLightComponent.h"
 #include "Components/FlashlightComponent.h"
@@ -148,12 +149,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="VFX")
 	FVector BulletImpactSize {1, 1, 1};
 	
-	
-	// CONDITIONALS 
-	bool IsAttacking = false;
-	bool IsAiming = false;
-	
 
+	// UI //
+	
+	UPROPERTY(EditAnywhere, Category = "UI")
+	TSubclassOf<UUserWidget> AimWidgetClass;
+	
+	UPROPERTY()
+	UUserWidget* AimWidget;
 
 	
 	////////// FUNCTIONS /////////////
@@ -197,8 +200,10 @@ public:
 
 private:
 
-	// HELPER FOR ENABLING/DISABLING AimTimeline ON TICK
-	UPROPERTY()
+	// CONDITIONALS 
+	bool IsAttacking = false;
+	bool IsAiming = false;
+	bool FlashlightActive = false;
 	bool AimReverse = false;
 
 	
@@ -208,7 +213,9 @@ private:
 	void StopUsingFlashlight();		// RELEASED RIGHT MOUSE BUTTON
 	void Melee();					// PRESSED F BUTTON
 	void Shoot();					// PRESSED LEFT MOUSE BUTTON
-
+	void StartAim();
+	void StopAim();
+	
 protected:
 	
 	void Move(const FInputActionValue& Value);
