@@ -133,6 +133,12 @@ public:
 	UAnimMontage* AimMontage;
 
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="VFX")
+	UParticleSystem* MuzzleFlash;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="VFX")
+	FVector MuzzleFlashSize {1, 1, 1};
+
 	
 	// CONDITIONALS 
 	bool IsAttacking = false;
@@ -189,9 +195,10 @@ private:
 	
 	// INPUT ACTIONS SPECIFIED IN PROJECT INPUT SETTINGS
 	// BINDINGS IN SetupPlayerInputComponent IMPLEMENTATION IN CPP
-	void UseFlashlight();			// PRESSED LEFT MOUSE BUTTON
-	void StopUsingFlashlight();		// RELEASED LEFT MOUSE BUTTON
-	void Melee();					// PRESSED RIGHT MOUSE BUTTON
+	void UseFlashlight();			// PRESSED RIGHT MOUSE BUTTON
+	void StopUsingFlashlight();		// RELEASED RIGHT MOUSE BUTTON
+	void Melee();					// PRESSED F BUTTON
+	void Shoot();					// PRESSED LEFT MOUSE BUTTON
 
 protected:
 	

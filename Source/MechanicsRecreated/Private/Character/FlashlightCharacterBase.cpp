@@ -8,6 +8,7 @@
 #include "Components/FlashlightComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "GameFramework/Controller.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -159,6 +160,7 @@ void AFlashlightCharacterBase::SetupPlayerInputComponent(UInputComponent* Player
 	PlayerInputComponent->BindAction("UseFlashlight", IE_Pressed, this, &AFlashlightCharacterBase::UseFlashlight);
 	PlayerInputComponent->BindAction("UseFlashlight", IE_Released, this, &AFlashlightCharacterBase::StopUsingFlashlight);
 	PlayerInputComponent->BindAction("Melee", IE_Pressed, this, &AFlashlightCharacterBase::Melee);
+	PlayerInputComponent->BindAction("Shoot", IE_Pressed, this, &AFlashlightCharacterBase::Shoot);
 }
 
 
@@ -233,6 +235,39 @@ void AFlashlightCharacterBase::Melee()
 	}
 }
 
+void AFlashlightCharacterBase::Shoot()
+{
+	
+	UGameplayStatics::SpawnEmitterAtLocation(
+			GetWorld(),
+			MuzzleFlash,
+			WeaponMesh->GetSocketLocation("Barrel"),
+			WeaponMesh->GetSocketRotation("Barrel"),
+			MuzzleFlashSize,
+			true
+			);
+	
+	FVector StartLocation = FlashlightSpotLight->GetComponentLocation();
+	FVector ForwardVector = FlashlightSpotLight->GetForwardVector();
+	FVector EndLocation = StartLocation + (ForwardVector * 1000);
+
+	FHitResult HitResult;
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(this);
+
+	if (GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECC_Camera, QueryParams))
+	{
+		AActor* HitActor = HitResult.GetActor();
+		if (HitActor && HitActor->ActorHasTag(FName("shieldDown")) && HitActor->GetClass()->ImplementsInterface(UDamageInterface::StaticClass()))
+		{
+			//Execute_MeleeDamage(HitActor);
+			UE_LOG(LogTemp, Warning, TEXT("ENEMY HIT!"));
+		}
+
+	}
+   
+}
+
 // ACTIVATE WEAPON COLLISION COMPONENT - called in MeleeAnimNotify.cpp
 void AFlashlightCharacterBase::ActivateWeapon()
 {
@@ -292,10 +327,20 @@ void AFlashlightCharacterBase::StopUsingFlashlight()
 		IsAiming = false;
 		AimReverse = true;
 
+		
+		
 		FlashlightComponent->Deactivate();
 		FlashlightComponent->SetComponentTickEnabled(false);
 
 		AimTimeline.Reverse();	// REVERSE AimTimeline FROM CURRENT POSITION
+
+		// Get the animation instance of the character
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+		if (AnimInstance)
+		{
+			// Stop the aim montage with a blend out time, e.g., 0.25 seconds
+			AnimInstance->Montage_Stop(0.25f, AimMontage);
+		}
 	}
 }
 
