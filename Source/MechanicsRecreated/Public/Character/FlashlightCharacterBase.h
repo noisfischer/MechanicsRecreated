@@ -137,8 +137,17 @@ public:
 	UParticleSystem* MuzzleFlash;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="VFX")
-	FVector MuzzleFlashSize {1, 1, 1};
+	FVector MuzzleFlashSize {.1, .1, .1};
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="VFX")
+	TSubclassOf<UCameraShakeBase> PistolCameraShake;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="VFX")
+	UParticleSystem* BulletImpact;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="VFX")
+	FVector BulletImpactSize {1, 1, 1};
+	
 	
 	// CONDITIONALS 
 	bool IsAttacking = false;

@@ -50,6 +50,9 @@ public:
 	// Enemy receives melee damage if widget health bar is depleted
 	virtual void MeleeDamage_Implementation() override;
 
+	// Enemy receives bullet damage if widget health bar is depleted
+	virtual void BulletDamage_Implementation() override;
+
 	// Plays hit reaction when enemy's shield is broken
 	virtual float PlayAnimMontage(UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName) override;
 

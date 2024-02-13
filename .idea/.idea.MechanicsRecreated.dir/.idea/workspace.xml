@@ -7,11 +7,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e479e85a-0bb9-4eb3-80d2-5477b99b8b22" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.MechanicsRecreated.dir/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.MechanicsRecreated.dir/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MechanicsRecreated/Private/Character/FlashlightCharacterBase.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MechanicsRecreated/Private/Character/FlashlightCharacterBase.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Source/MechanicsRecreated/Public/Character/FlashlightCharacterBase.h" beforeDir="false" afterPath="$PROJECT_DIR$/Source/MechanicsRecreated/Public/Character/FlashlightCharacterBase.h" afterDir="false" />
-    </list>
+    <list default="true" id="e479e85a-0bb9-4eb3-80d2-5477b99b8b22" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -134,6 +130,7 @@
       <workItem from="1707526416964" duration="14051000" />
       <workItem from="1707542978243" duration="297000" />
       <workItem from="1707600868736" duration="571000" />
+      <workItem from="1707790251082" duration="105000" />
     </task>
     <servers />
   </component>

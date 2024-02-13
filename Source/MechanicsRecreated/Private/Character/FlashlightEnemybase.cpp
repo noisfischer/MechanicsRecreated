@@ -73,6 +73,13 @@ void AFlashlightEnemybase::MeleeDamage_Implementation()
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
+void AFlashlightEnemybase::BulletDamage_Implementation()
+{
+	EnemyDead = true;
+	GetMesh()->SetSimulatePhysics(true);
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	// PlayAnimMontage(shieldBreakMontage, 2, "None");
+}
 
 
 // PLAYS MONTAGE WHEN CALLED

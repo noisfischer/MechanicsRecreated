@@ -235,10 +235,13 @@ void AFlashlightCharacterBase::Melee()
 	}
 }
 
+
+
 void AFlashlightCharacterBase::Shoot()
 {
-	
-	UGameplayStatics::SpawnEmitterAtLocation(
+	if(IsAiming)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(
 			GetWorld(),
 			MuzzleFlash,
 			WeaponMesh->GetSocketLocation("Barrel"),
@@ -246,26 +249,51 @@ void AFlashlightCharacterBase::Shoot()
 			MuzzleFlashSize,
 			true
 			);
-	
-	FVector StartLocation = FlashlightSpotLight->GetComponentLocation();
-	FVector ForwardVector = FlashlightSpotLight->GetForwardVector();
-	FVector EndLocation = StartLocation + (ForwardVector * 1000);
 
-	FHitResult HitResult;
-	FCollisionQueryParams QueryParams;
-	QueryParams.AddIgnoredActor(this);
-
-	if (GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECC_Camera, QueryParams))
-	{
-		AActor* HitActor = HitResult.GetActor();
-		if (HitActor && HitActor->ActorHasTag(FName("shieldDown")) && HitActor->GetClass()->ImplementsInterface(UDamageInterface::StaticClass()))
+		if (PistolCameraShake)
 		{
-			//Execute_MeleeDamage(HitActor);
-			UE_LOG(LogTemp, Warning, TEXT("ENEMY HIT!"));
+			UGameplayStatics::PlayWorldCameraShake(
+				GetWorld(),
+				PistolCameraShake,
+				GetActorLocation(),
+				0.f,
+				500.f,
+				1.f,
+				false
+				);
 		}
+	
+	
+		FVector StartLocation = FlashlightSpotLight->GetComponentLocation();
+		FVector ForwardVector = FlashlightSpotLight->GetForwardVector();
+		FVector EndLocation = StartLocation + (ForwardVector * 1000);
 
-	}
+		FHitResult HitResult;
+		FCollisionQueryParams QueryParams;
+		QueryParams.AddIgnoredActor(this);
+
+		if (GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECC_Camera, QueryParams))
+		{
+			AActor* HitActor = HitResult.GetActor();
+			if (HitActor && HitActor->ActorHasTag(FName("shieldDown")) && HitActor->GetClass()->ImplementsInterface(UDamageInterface::StaticClass()))
+			{
+				Execute_BulletDamage(HitActor);
+
+				UGameplayStatics::SpawnEmitterAtLocation(
+					GetWorld(),
+					BulletImpact,
+					HitResult.ImpactPoint,
+					HitResult.ImpactNormal.Rotation(),
+					BulletImpactSize,
+			true
+					);
+			}
+
+		}
    
+	}
+	
+	
 }
 
 // ACTIVATE WEAPON COLLISION COMPONENT - called in MeleeAnimNotify.cpp

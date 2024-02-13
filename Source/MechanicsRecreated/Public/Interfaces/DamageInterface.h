@@ -23,4 +23,7 @@ public:
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void MeleeDamage();
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	void BulletDamage();
 };
