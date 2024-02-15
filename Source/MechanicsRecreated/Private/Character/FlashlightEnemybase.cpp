@@ -76,14 +76,27 @@ void AFlashlightEnemybase::MeleeDamage_Implementation()
 
 void AFlashlightEnemybase::BulletDamage_Implementation(FName ClosestBoneName, FVector ImpulseDirection)
 {
+	
+	
 	if(!EnemyDead)
 	{
 		EnemyDead = true;
 		GetMesh()->SetSimulatePhysics(true);
 		GetMesh()->AddImpulseToAllBodiesBelow(ImpulseDirection * 1000, ClosestBoneName, true, true);
+
+		for(auto CurrentBoneName : BoneNames)
+		{
+			if (CurrentBoneName == ClosestBoneName)
+			{
+				GetMesh()->HideBoneByName(CurrentBoneName, PBO_None);
+			}
+		}
+		
 		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
+		
 }
+
 
 
 // PLAYS MONTAGE WHEN CALLED

@@ -108,22 +108,36 @@ void AFlashlightCharacterBase::BeginPlay()
 		AnimInstance->OnMontageEnded.AddDynamic(this, &AFlashlightCharacterBase::OnMontageFinished);
 
 
-	// BIND FUNCTIONS TO TIMELINE ATTRIBUTES/EVENTS
-	if (AimTimelineCurve)
+	// INIT TIMELINES
+	if (TimelineCurve)
 	{
-		FOnTimelineFloat onTimelineProgress;
-		onTimelineProgress.BindUFunction(this, FName("HandleTimelineProgress"));
+		// USE FLASHLIGHT //
+		FOnTimelineFloat FlashlightTimelineProgress;
+		FlashlightTimelineProgress.BindUFunction(this, FName("FlashlightTimelineProgress"));
         
-		AimTimeline.AddInterpFloat(AimTimelineCurve, onTimelineProgress);
-        
-		// Bind the finished function
-		FOnTimelineEvent onTimelineFinished;
-		onTimelineFinished.BindUFunction(this, FName("OnTimelineFinished"));
-		AimTimeline.SetTimelineFinishedFunc(onTimelineFinished);
+		FlashlightTimeline.AddInterpFloat(TimelineCurve, FlashlightTimelineProgress);
+		
+		FOnTimelineEvent OnFlashlightTimelineFinished;
+		OnFlashlightTimelineFinished.BindUFunction(this, FName("FlashlightTimelineFinished"));
+		FlashlightTimeline.SetTimelineFinishedFunc(OnFlashlightTimelineFinished);
+
+		FlashlightTimeline.SetLooping(false);
+
+		// AIM //
+		FOnTimelineFloat AimTimelineProgress;
+		AimTimelineProgress.BindUFunction(this, FName("AimTimelineProgress"));
+
+		AimTimeline.AddInterpFloat(TimelineCurve,AimTimelineProgress);
+
+		FOnTimelineEvent OnAimTimelineFinished;
+		OnAimTimelineFinished.BindUFunction(this, FName("AimTimelineFinished"));
+		AimTimeline.SetTimelineFinishedFunc(OnAimTimelineFinished);
 
 		AimTimeline.SetLooping(false);
 	}
-			
+
+
+	// CREATE AIM WIDGET
 	if (AimWidgetClass != nullptr)
 	{
 		AimWidget = CreateWidget<UUserWidget>(GetWorld(), AimWidgetClass);
@@ -140,7 +154,10 @@ void AFlashlightCharacterBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (IsAiming || AimReverse)
+	if (bFlashlightActive)
+		FlashlightTimeline.TickTimeline(DeltaTime);
+	
+	if (bAimActive)
 		AimTimeline.TickTimeline(DeltaTime);
 }
 
@@ -243,9 +260,9 @@ float AFlashlightCharacterBase::PlayAnimMontage(UAnimMontage* AnimMontage, float
 // PLAY MELEE MONTAGE - after passing conditions
 void AFlashlightCharacterBase::Melee()
 {
-	if(!IsAttacking && !IsAiming)
+	if(!bAttacking && !bAiming)
 	{
-		IsAttacking = true;
+		bAttacking = true;
 		PlayAnimMontage(MeleeMontage, MeleeMontageSpeed, FName("None"));
 	}
 }
@@ -254,7 +271,7 @@ void AFlashlightCharacterBase::Melee()
 
 void AFlashlightCharacterBase::Shoot()
 {
-	if(IsAiming)
+	if(bAiming)
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(
 			GetWorld(),
@@ -279,11 +296,11 @@ void AFlashlightCharacterBase::Shoot()
 		}
 	
 	
-		FVector StartLocation = WeaponMesh->GetSocketLocation("Barrel"); //FlashlightSpotLight->GetComponentLocation();
-		FVector ForwardVector = WeaponMesh->GetForwardVector();
-		FVector EndLocation = StartLocation + (ForwardVector * -10000);
+		FVector StartLocation = FollowCamera->GetComponentLocation();
+		FVector ForwardVector = FollowCamera->GetForwardVector();
+		FVector EndLocation = StartLocation + (ForwardVector * 10000);
 
-		DrawDebugLine(
+		/*DrawDebugLine(
 					GetWorld(),
 					StartLocation,
 					EndLocation,
@@ -292,7 +309,7 @@ void AFlashlightCharacterBase::Shoot()
 					0.2f,
 					0, // Depth priority
 					1.0f
-				);
+				);*/
 
 		FHitResult HitResult;
 		FCollisionQueryParams QueryParams;
@@ -307,7 +324,7 @@ void AFlashlightCharacterBase::Shoot()
 			{
 				USkeletalMeshComponent* EnemyMesh = Cast<USkeletalMeshComponent>(HitResult.Component.Get());
 				FName ClosestBoneName = EnemyMesh->FindClosestBone(HitResult.Location);
-				UE_LOG(LogTemp, Warning, TEXT("Closest bone: %s"), *ClosestBoneName.ToString());
+				UE_LOG(LogTemp, Warning, TEXT("%s"), *ClosestBoneName.ToString());
 				Execute_BulletDamage(HitActor, ClosestBoneName, GetActorForwardVector());
 
 				UGameplayStatics::SpawnEmitterAtLocation(
@@ -354,7 +371,7 @@ void AFlashlightCharacterBase::OnWeaponCollisionOverlap(UPrimitiveComponent* Ove
 // ALLOWS PLAYER TO MELEE AGAIN ONCE MELEE MONTAGE IS COMPLETE
 void AFlashlightCharacterBase::OnMontageFinished(UAnimMontage* Montage, bool bMontageInterrupted)
 {
-		IsAttacking = false;
+		bAttacking = false;
 }
 
 
@@ -362,15 +379,16 @@ void AFlashlightCharacterBase::OnMontageFinished(UAnimMontage* Montage, bool bMo
 
 void AFlashlightCharacterBase::StartAim()
 {
-	if (!IsAttacking && AimTimelineCurve)
+	if (!bAttacking && !bUsingFlashlight && TimelineCurve)
 	{
-		IsAiming = true;
+		bAiming = true;		// FOR TIMELINE FINISHED
+		bAimActive = true;	// TO ACTIVATE TIMELINE TICK
 
 		PlayAnimMontage(AimMontage, 0.01, FName("None"));
 		
 		FOnTimelineFloat ProgressFunction;
-		ProgressFunction.BindUFunction(this, FName("HandleTimelineProgress"));
-		AimTimeline.AddInterpFloat(AimTimelineCurve, ProgressFunction);
+		ProgressFunction.BindUFunction(this, FName("AimTimelineProgress"));
+		AimTimeline.AddInterpFloat(TimelineCurve, ProgressFunction);
 		AimTimeline.SetLooping(false);
 		AimTimeline.Play();
 
@@ -383,12 +401,10 @@ void AFlashlightCharacterBase::StartAim()
 
 void AFlashlightCharacterBase::StopAim()
 {
-	if (IsAiming)
+	if (bAiming)
 	{
-		IsAiming = false;
-		AimReverse = true;
+		bAiming = false;		// FOR TIMELINE FINISHED
 		
-
 		AimTimeline.Reverse();	// REVERSE AimTimeline FROM CURRENT POSITION
 
 		// Get the animation instance of the character
@@ -411,18 +427,18 @@ void AFlashlightCharacterBase::StopAim()
 // AIM FLASHLIGHT START - activates flashlight component 
 void AFlashlightCharacterBase::UseFlashlight()
 {
-	if (!IsAttacking && FlashlightComponent && AimTimelineCurve)
+	if (!bAttacking && !bAiming && FlashlightComponent && TimelineCurve)
 	{
-		IsAiming = true;
-		FlashlightActive = true;
+		bUsingFlashlight = true;
+		bFlashlightActive = true;	// FOR TIMELINE TICK ACTIVATION
 		
 		PlayAnimMontage(AimMontage, 0.01, FName("None"));
 		
 		FOnTimelineFloat ProgressFunction;
-		ProgressFunction.BindUFunction(this, FName("HandleTimelineProgress"));
-		AimTimeline.AddInterpFloat(AimTimelineCurve, ProgressFunction);
-		AimTimeline.SetLooping(false);
-		AimTimeline.Play();
+		ProgressFunction.BindUFunction(this, FName("FlashlightTimelineProgress"));
+		FlashlightTimeline.AddInterpFloat(TimelineCurve, ProgressFunction);
+		FlashlightTimeline.SetLooping(false);
+		FlashlightTimeline.Play();
 	}
 	
 }
@@ -430,18 +446,14 @@ void AFlashlightCharacterBase::UseFlashlight()
 // AIM FLASHLIGHT END - deactivates flashlight component
 void AFlashlightCharacterBase::StopUsingFlashlight()
 {
-	if (IsAiming)
+	if (bUsingFlashlight && FlashlightComponent && TimelineCurve)
 	{
-		IsAiming = false;
-		FlashlightActive = false;
-		AimReverse = true;
-
-		
+		bUsingFlashlight = false;
 		
 		FlashlightComponent->Deactivate();
 		FlashlightComponent->SetComponentTickEnabled(false);
 
-		AimTimeline.Reverse();	// REVERSE AimTimeline FROM CURRENT POSITION
+		FlashlightTimeline.Reverse();	// REVERSE AimTimeline FROM CURRENT POSITION
 
 		// Get the animation instance of the character
 		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
@@ -455,7 +467,7 @@ void AFlashlightCharacterBase::StopUsingFlashlight()
 
 
 // UPDATES CAMERA & FLASHLIGHT PROPERTIES EVERY TICK OF AIM TIMELINE - called in Tick Function
-void AFlashlightCharacterBase::HandleTimelineProgress(float Alpha)
+void AFlashlightCharacterBase::FlashlightTimelineProgress(float Alpha)
 {
 	float NewFOV = FMath::Lerp(StartFOV, EndFOV, Alpha);
 	FollowCamera->SetFieldOfView(NewFOV);
@@ -471,16 +483,30 @@ void AFlashlightCharacterBase::HandleTimelineProgress(float Alpha)
 }
 
 
-
 // HANDLES WHEN AIM TIMELINE FULLY PLAYS/REVERSES
-void AFlashlightCharacterBase::OnTimelineFinished()
+void AFlashlightCharacterBase::FlashlightTimelineFinished()
 {
-	if(FlashlightActive)				// ENABLES AIM TIMELINE TICK
+	if(bUsingFlashlight)				// ENABLES AIM TIMELINE TICK
 	{
 		FlashlightComponent->Activate();
 		FlashlightComponent->SetComponentTickEnabled(true);
 	}
 
-	else if(AimReverse)
-		AimReverse = false;		// DISABLES AIM TIMELINE TICK
+	else
+		bFlashlightActive = false;		// DISABLES AIM TIMELINE TICK
+}
+
+
+
+void AFlashlightCharacterBase::AimTimelineProgress(float Alpha)
+{
+	float NewFOV = FMath::Lerp(StartFOV, EndFOV, Alpha);
+	FollowCamera->SetFieldOfView(NewFOV);
+}
+
+
+void AFlashlightCharacterBase::AimTimelineFinished()
+{
+	if (!bAiming)
+		bAimActive = false;
 }

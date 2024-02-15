@@ -84,8 +84,8 @@ void UFlashlightComponent::FlashlightLineTrace()
 
 				
 				// SEND INTERFACE EVENT MESSAGE TO HIT ENEMY TO TAKE FLASHLIGHT DAMAGE
-				Execute_FlashlightDamage(HitActor, Damage);
-
+				Execute_FlashlightDamage(HitActor, DamageScale * GetWorld()->GetDeltaSeconds());
+				UE_LOG(LogTemp, Warning, TEXT("%f"), DamageScale * GetWorld()->GetDeltaSeconds());
 				
 				// VFX SPAWNED AT HIT LOCATION
 				UGameplayStatics::SpawnEmitterAtLocation(
@@ -116,4 +116,3 @@ void UFlashlightComponent::FlashlightLineTrace()
 		
 	}
 }
-

@@ -30,7 +30,7 @@ public:
 	float FlashRange = 1000;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "1- STATS")
-	float Damage = 1;
+	float DamageScale = 100;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="2 - PARTICLES")
 	UParticleSystem* FlashlightDamageParticles;

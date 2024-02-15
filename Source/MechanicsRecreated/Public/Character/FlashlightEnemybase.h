@@ -37,6 +37,12 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	UUserWidget* UserWidget;	// Actual widget displayed over enemy head. Assigned in child class's widget component
 
+
+	// FOR DISMEMBERMENT //
+	TArray<FName> BoneNames {"RightUpLeg", "LeftUpLeg", "RightLeg", "LeftLeg",
+		"RightShoulder", "RightArm", "RightForeArm", "LeftShoulder", "LeftArm", "LeftForeArm",
+		"Head", "HeadTop_End"};
+	
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

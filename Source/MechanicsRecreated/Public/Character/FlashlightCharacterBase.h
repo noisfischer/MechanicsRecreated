@@ -96,11 +96,15 @@ public:
 
 	// TIMELINE TO CONTROL CAMERA & FLASHLIGHT PROPERTIES
 	UPROPERTY()
+	FTimeline FlashlightTimeline;
+
+	UPROPERTY()
 	FTimeline AimTimeline;
 
+	
 	// FLOAT CURVE MADE IN UE EDITOR TO BE ASSIGNED IN CHILD BP
-	UPROPERTY(EditAnywhere, Category="AimTimeline")
-	UCurveFloat* AimTimelineCurve;
+	UPROPERTY(EditAnywhere, Category="Timelines")
+	UCurveFloat* TimelineCurve;
 	
 	// DEFAULT SPOTLIGHT PROPERTIES FOR AIM TIMELINE
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="SpotLightProperties")
@@ -190,9 +194,14 @@ public:
 
 	// TIMELINE FUNCTIONS
 	UFUNCTION()
-	void HandleTimelineProgress(float Alpha);	// CALLED IN TICK FUNCTION
+	void FlashlightTimelineProgress(float Alpha);	// CALLED IN TICK FUNCTION
 	UFUNCTION()
-	void OnTimelineFinished();					// CALLED WHEN TIMELINE IS DONE PLAYING/REVERSING
+	void FlashlightTimelineFinished();					// CALLED WHEN TIMELINE IS DONE PLAYING/REVERSING
+
+	UFUNCTION()
+	void AimTimelineProgress(float Alpha);	// CALLED IN TICK FUNCTION
+	UFUNCTION()
+	void AimTimelineFinished();	
 	
 
 	virtual void Tick(float DeltaTime) override;
@@ -200,21 +209,22 @@ public:
 
 private:
 
-	// CONDITIONALS 
-	bool IsAttacking = false;
-	bool IsAiming = false;
-	bool FlashlightActive = false;
-	bool AimReverse = false;
-
+	// CONDITIONALS
+	bool bAttacking = false;
+	bool bAiming = false;
+	bool bAimActive = false;
+	bool bUsingFlashlight = false;
+	bool bFlashlightActive = false;
+	
 	
 	// INPUT ACTIONS SPECIFIED IN PROJECT INPUT SETTINGS
 	// BINDINGS IN SetupPlayerInputComponent IMPLEMENTATION IN CPP
-	void UseFlashlight();			// PRESSED RIGHT MOUSE BUTTON
-	void StopUsingFlashlight();		// RELEASED RIGHT MOUSE BUTTON
+	void UseFlashlight();			// PRESSED MIDDLE MOUSE BUTTON
+	void StopUsingFlashlight();		// RELEASED MIDDLE MOUSE BUTTON
 	void Melee();					// PRESSED F BUTTON
 	void Shoot();					// PRESSED LEFT MOUSE BUTTON
-	void StartAim();
-	void StopAim();
+	void StartAim();				// PRESSED RIGHT MOUSE BUTTON
+	void StopAim();					// RELEASED RIGHT MOUSE BUTTON
 	
 protected:
 	
