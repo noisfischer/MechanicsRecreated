@@ -2,7 +2,7 @@
 
 #include "Character/FlashlightEnemybase.h"
 #include "Components/CapsuleComponent.h"
-#include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 // CONSTRUCTOR
 AFlashlightEnemybase::AFlashlightEnemybase()
@@ -74,14 +74,17 @@ void AFlashlightEnemybase::MeleeDamage_Implementation()
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
+
 void AFlashlightEnemybase::BulletDamage_Implementation(FName ClosestBoneName, FVector ImpulseDirection)
 {
-	
-	
 	if(!EnemyDead)
 	{
 		EnemyDead = true;
 		GetMesh()->SetSimulatePhysics(true);
+	}
+
+	if(EnemyDead)
+	{
 		GetMesh()->AddImpulseToAllBodiesBelow(ImpulseDirection * 1000, ClosestBoneName, true, true);
 
 		for(auto CurrentBoneName : BoneNames)
@@ -93,13 +96,15 @@ void AFlashlightEnemybase::BulletDamage_Implementation(FName ClosestBoneName, FV
 				else
 					GetMesh()->HideBoneByName(CurrentBoneName, PBO_None);
 			}
-
-			// SPAWN BLOOD DECAL AND SKELETAL MESH WITH ONLY HIT BONE VISIBLE HERE //
 		}
-		
-		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
+
+	if(BloodDecal)
+		SpawnDecal(ClosestBoneName);
+	else
+		UE_LOG(LogTemp, Error, TEXT("Please assign a value to enemy's BloodDecal material"));
 		
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 
@@ -127,6 +132,26 @@ float AFlashlightEnemybase::PlayAnimMontage(UAnimMontage* AnimMontage, float InP
 	return MontageLength;
 }
 
+void AFlashlightEnemybase::SpawnDecal(FName BoneName)
+{
+	FVector StartLocation = GetMesh()->GetBoneLocation(BoneName);
+	FVector EndLocation {StartLocation.X, StartLocation.Y, StartLocation.Z - 1000};
+	FHitResult HitResult;
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(this);
+	
+	if (GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECC_Visibility, QueryParams))
+	{
+		FVector DecalSize = FVector(35.0f, 100.0f, 100.0f); // Adjust the size to fit your needs
+		FRotator DecalRotation = HitResult.ImpactNormal.Rotation();
+		DecalRotation.Pitch += 180.0f;
+		
+		// Spawn the decal at the bone's location
+		UGameplayStatics::SpawnDecalAtLocation(GetWorld(), BloodDecal, DecalSize, HitResult.Location, DecalRotation, 0.0f); // 10 seconds lifespan, adjust as needed
+	}
+}
+
+	
 
 
 /*void AFlashlightEnemybase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

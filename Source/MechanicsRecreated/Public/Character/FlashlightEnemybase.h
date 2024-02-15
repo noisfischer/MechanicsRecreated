@@ -33,6 +33,9 @@ public:
 	UPROPERTY(VisibleAnywhere)
 	bool EnemyDead = false;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="1 - HEALTH")
+	UMaterialInterface* BloodDecal;
+
 private:
 	UPROPERTY(VisibleAnywhere)
 	UUserWidget* UserWidget;	// Actual widget displayed over enemy head. Assigned in child class's widget component
@@ -62,6 +65,8 @@ public:
 	// Plays hit reaction when enemy's shield is broken
 	virtual float PlayAnimMontage(UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName) override;
 
+	virtual void SpawnDecal(FName BoneName);
+	
 	/*virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;*/
 
 };

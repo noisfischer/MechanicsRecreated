@@ -324,7 +324,7 @@ void AFlashlightCharacterBase::Shoot()
 			{
 				USkeletalMeshComponent* EnemyMesh = Cast<USkeletalMeshComponent>(HitResult.Component.Get());
 				FName ClosestBoneName = EnemyMesh->FindClosestBone(HitResult.Location);
-				UE_LOG(LogTemp, Warning, TEXT("%s"), *ClosestBoneName.ToString());
+				// UE_LOG(LogTemp, Warning, TEXT("%s"), *ClosestBoneName.ToString());
 				Execute_BulletDamage(HitActor, ClosestBoneName, GetActorForwardVector());
 
 				UGameplayStatics::SpawnEmitterAtLocation(
