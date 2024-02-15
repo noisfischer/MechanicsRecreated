@@ -88,8 +88,13 @@ void AFlashlightEnemybase::BulletDamage_Implementation(FName ClosestBoneName, FV
 		{
 			if (CurrentBoneName == ClosestBoneName)
 			{
-				GetMesh()->HideBoneByName(CurrentBoneName, PBO_None);
+				if (ClosestBoneName == "HeadTop_End")
+					GetMesh()->HideBoneByName("Head", PBO_None);
+				else
+					GetMesh()->HideBoneByName(CurrentBoneName, PBO_None);
 			}
+
+			// SPAWN BLOOD DECAL AND SKELETAL MESH WITH ONLY HIT BONE VISIBLE HERE //
 		}
 		
 		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
