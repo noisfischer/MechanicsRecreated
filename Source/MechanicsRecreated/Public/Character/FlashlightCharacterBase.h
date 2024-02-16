@@ -80,12 +80,12 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="CameraProperties")
 	float EndFOV = 70.0f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="CameraProperties")
+	float StartCameraPosition;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="CameraProperties")
-	float StartCameraPosition = 90.0f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="CameraProperties")
-	float EndCameraPosition = 70.0f;
+	float EndCameraPosition = 20.0f;
 
 	
 	// SPOTLIGHT FOR FLASHLIGHT MESH
@@ -114,13 +114,13 @@ public:
 	float EndLightIntensity = 100000.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="SpotLightProperties")
-	float StartOuterConeAngle = 12.0f;
+	float StartOuterConeAngle = 25.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="SpotLightProperties")
 	float EndOuterConeAngle = 2.0f;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="SpotLightProperties")
-	float StartInnerConeAngle = 10.0f;
+	float StartInnerConeAngle = 15.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="SpotLightProperties")
 	float EndInnerConeAngle = 1.0f;
@@ -135,9 +135,11 @@ public:
 	float MeleeMontageSpeed = 2.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Animations")
-	UAnimMontage* AimMontage;
+	UAnimMontage* FlashlightAimMontage;
 
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Animations")
+	UAnimMontage* WeaponAimMontage;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="VFX")
 	UParticleSystem* MuzzleFlash;
 

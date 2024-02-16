@@ -85,7 +85,7 @@ void AFlashlightEnemybase::BulletDamage_Implementation(FName ClosestBoneName, FV
 
 	if(EnemyDead)
 	{
-		GetMesh()->AddImpulseToAllBodiesBelow(ImpulseDirection * 1000, ClosestBoneName, true, true);
+		GetMesh()->AddImpulseToAllBodiesBelow(ImpulseDirection * 750, ClosestBoneName, true, true);
 
 		for(auto CurrentBoneName : BoneNames)
 		{
@@ -142,7 +142,7 @@ void AFlashlightEnemybase::SpawnDecal(FName BoneName)
 	
 	if (GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECC_Visibility, QueryParams))
 	{
-		FVector DecalSize = FVector(35.0f, 100.0f, 100.0f); // Adjust the size to fit your needs
+		FVector DecalSize = FVector(15.0f, 100.0f, 100.0f); // Adjust the size to fit your needs
 		FRotator DecalRotation = HitResult.ImpactNormal.Rotation();
 		DecalRotation.Pitch += 180.0f;
 		

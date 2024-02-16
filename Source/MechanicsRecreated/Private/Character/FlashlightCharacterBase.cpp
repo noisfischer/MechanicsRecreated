@@ -50,7 +50,7 @@ AFlashlightCharacterBase::AFlashlightCharacterBase()
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
 	CameraBoom->TargetArmLength = 400.0f;
-	CameraBoom->bUsePawnControlRotation = true; 
+	CameraBoom->bUsePawnControlRotation = true;
 
 	// SETUP FOLLOW CAMERA AND SET DEFAULT VALUES
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
@@ -147,6 +147,11 @@ void AFlashlightCharacterBase::BeginPlay()
 			AimWidget->SetVisibility(ESlateVisibility::Hidden); // Initially hidden
 		}
 	}
+	
+	FlashlightSpotLight->SetIntensity(StartLightIntensity);
+	FlashlightSpotLight->SetOuterConeAngle(StartOuterConeAngle);
+	FlashlightSpotLight->SetInnerConeAngle(StartInnerConeAngle);
+	
 }
 
 
@@ -199,7 +204,7 @@ void AFlashlightCharacterBase::SetupPlayerInputComponent(UInputComponent* Player
 void AFlashlightCharacterBase::Move(const FInputActionValue& Value)
 {
 	FVector2D MovementVector = Value.Get<FVector2D>();
-
+	
 	if (Controller != nullptr)
 	{
 		// find out which way is forward
@@ -384,7 +389,7 @@ void AFlashlightCharacterBase::StartAim()
 		bAiming = true;		// FOR TIMELINE FINISHED
 		bAimActive = true;	// TO ACTIVATE TIMELINE TICK
 
-		PlayAnimMontage(AimMontage, 0.01, FName("None"));
+		PlayAnimMontage(WeaponAimMontage, 0.01, FName("None"));
 		
 		FOnTimelineFloat ProgressFunction;
 		ProgressFunction.BindUFunction(this, FName("AimTimelineProgress"));
@@ -412,7 +417,7 @@ void AFlashlightCharacterBase::StopAim()
 		if (AnimInstance)
 		{
 			// Stop the aim montage with a blend out time, e.g., 0.25 seconds
-			AnimInstance->Montage_Stop(0.25f, AimMontage);
+			AnimInstance->Montage_Stop(0.25f, WeaponAimMontage);
 		}
 		if (AimWidget != nullptr)
 		{
@@ -432,7 +437,7 @@ void AFlashlightCharacterBase::UseFlashlight()
 		bUsingFlashlight = true;
 		bFlashlightActive = true;	// FOR TIMELINE TICK ACTIVATION
 		
-		PlayAnimMontage(AimMontage, 0.01, FName("None"));
+		PlayAnimMontage(FlashlightAimMontage, 0.01, FName("None"));
 		
 		FOnTimelineFloat ProgressFunction;
 		ProgressFunction.BindUFunction(this, FName("FlashlightTimelineProgress"));
@@ -460,7 +465,7 @@ void AFlashlightCharacterBase::StopUsingFlashlight()
 		if (AnimInstance)
 		{
 			// Stop the aim montage with a blend out time, e.g., 0.25 seconds
-			AnimInstance->Montage_Stop(0.25f, AimMontage);
+			AnimInstance->Montage_Stop(0.25f, FlashlightAimMontage);
 		}
 	}
 }
@@ -480,6 +485,9 @@ void AFlashlightCharacterBase::FlashlightTimelineProgress(float Alpha)
 	
 	float NewInnerConeAngle = FMath::Lerp(StartInnerConeAngle, EndInnerConeAngle, Alpha);
 	FlashlightSpotLight->SetInnerConeAngle(NewInnerConeAngle);
+
+	float NewCameraPosition = FMath::Lerp(CameraBoom->SocketOffset.Y, EndCameraPosition, Alpha);
+	CameraBoom->SocketOffset.Y = NewCameraPosition;
 }
 
 
@@ -502,6 +510,9 @@ void AFlashlightCharacterBase::AimTimelineProgress(float Alpha)
 {
 	float NewFOV = FMath::Lerp(StartFOV, EndFOV, Alpha);
 	FollowCamera->SetFieldOfView(NewFOV);
+
+	float NewCameraPosition = FMath::Lerp(CameraBoom->SocketOffset.Y, EndCameraPosition, Alpha);
+	CameraBoom->SocketOffset.Y = NewCameraPosition;
 }
 
 
