@@ -45,22 +45,22 @@ void AFlashlightEnemybase::Tick(float DeltaTime)
 void AFlashlightEnemybase::FlashlightDamage_Implementation(float Damage)
 {
 	// UPDATE SHIELD HEALTH - clamped between 0-100
-	currentShield = FMath::Clamp(currentShield - Damage, 0, maxShield);
+	CurrentShield = FMath::Clamp(CurrentShield - Damage, 0, MaxShield);
 
 
 	// IF SHIELD HEALTH IS DEPLETED - hide shield health widget and play montage
-	if (UserWidget && currentShield == 0)
+	if (UserWidget && CurrentShield == 0)
 	{
 		Tags.Add("shieldDown");								// Stops flashlight component line trace hit
 		UserWidget->SetVisibility(ESlateVisibility::Hidden);	// Hides shield health widget
 
-		PlayAnimMontage(shieldBreakMontage, 1.0, "None");
+		PlayAnimMontage(ShieldBreakMontage, 1.0, "None");
 	}
 
 	// IF SHIELD HEALTH NOT DEPLETED, 
-	if (UserWidget && UserWidget->Implements<UDamageInterface>() && currentShield > -1)
+	if (UserWidget && UserWidget->Implements<UDamageInterface>() && CurrentShield > -1)
 	{
-		Execute_FlashlightDamage(UserWidget, currentShield);	// Lower shield health bar widget
+		Execute_FlashlightDamage(UserWidget, CurrentShield);	// Lower shield health bar widget
 	}
 	
 }
@@ -79,9 +79,26 @@ void AFlashlightEnemybase::BulletDamage_Implementation(FName ClosestBoneName, FV
 {
 	if(!EnemyDead)
 	{
-		EnemyDead = true;
-		GetMesh()->SetSimulatePhysics(true);
+		if (ClosestBoneName == "Head" || ClosestBoneName == "HeadTop_End")
+			{
+				CurrentHealth = 0;
+				EnemyDead = true;
+				GetMesh()->SetSimulatePhysics(true);
+			}
+
+		else
+			{
+				CurrentHealth -= MaxHealth/4;
+				
+			
+				if (CurrentHealth <= 0)
+				{
+					EnemyDead = true;
+					GetMesh()->SetSimulatePhysics(true);
+				}
+			}
 	}
+	
 
 	if(EnemyDead)
 	{

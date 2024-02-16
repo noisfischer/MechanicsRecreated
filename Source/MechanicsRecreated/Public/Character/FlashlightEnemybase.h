@@ -22,13 +22,20 @@ public:
 	AFlashlightEnemybase();
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="1 - HEALTH")
-	float maxShield = 100;
+	float MaxShield = 100;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="1 - HEALTH")
-	float currentShield = 100;
+	float CurrentShield = 100;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="1 - HEALTH")
+	float MaxHealth = 100;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="1 - HEALTH")
+	float CurrentHealth = 100;
+
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="1 - HEALTH")	// Reaction on shield break assigned in child class
-	UAnimMontage* shieldBreakMontage;
+	UAnimMontage* ShieldBreakMontage;
 
 	UPROPERTY(VisibleAnywhere)
 	bool EnemyDead = false;

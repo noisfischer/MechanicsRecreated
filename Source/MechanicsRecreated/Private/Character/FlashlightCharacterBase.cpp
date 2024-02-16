@@ -341,12 +341,8 @@ void AFlashlightCharacterBase::Shoot()
 			true
 					);
 			}
-
 		}
-   
 	}
-	
-	
 }
 
 
