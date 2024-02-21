@@ -62,6 +62,7 @@ AFlashlightCharacterBase::AFlashlightCharacterBase()
 	FlashlightMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("FlashlightMesh"));
 	FlashlightMesh->SetupAttachment(GetMesh(), "LeftHandSocket");
 
+	
 	// SETUP SPOTLIGHT COMPONENT AND SET DEFAULT VALUES
 	FlashlightSpotLight = CreateDefaultSubobject<USpotLightComponent>(TEXT("FlashlightSpotlight"));
 	FlashlightSpotLight->SetupAttachment(FlashlightMesh, "Bulb");
@@ -174,32 +175,27 @@ void AFlashlightCharacterBase::SetupPlayerInputComponent(UInputComponent* Player
 	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
 		
-		// Jumping
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
-
-		// Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AFlashlightCharacterBase::Move);
-
-		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AFlashlightCharacterBase::Look);
 	}
 	else
 	{
-		UE_LOG(LogTemplateCharacter, Error, TEXT("'%s' Failed to find an Enhanced Input component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
+		UE_LOG(LogTemplateCharacter, Error, TEXT("'%s' Failed to find an Enhanced Input component! "), *GetNameSafe(this));
 	}
 
 	// BIND INPUT ACTIONS CREATE IN PROJECT SETTINGS TO FUNCTIONS
 	PlayerInputComponent->BindAction("UseFlashlight", IE_Pressed, this, &AFlashlightCharacterBase::UseFlashlight);
 	PlayerInputComponent->BindAction("UseFlashlight", IE_Released, this, &AFlashlightCharacterBase::StopUsingFlashlight);
+
 	PlayerInputComponent->BindAction("Melee", IE_Pressed, this, &AFlashlightCharacterBase::Melee);
+
 	PlayerInputComponent->BindAction("Shoot", IE_Pressed, this, &AFlashlightCharacterBase::Shoot);
 	PlayerInputComponent->BindAction("Aim", IE_Pressed, this, &AFlashlightCharacterBase::StartAim);
 	PlayerInputComponent->BindAction("Aim", IE_Released, this, &AFlashlightCharacterBase::StopAim);
-
-
+	
 }
-
 
 void AFlashlightCharacterBase::Move(const FInputActionValue& Value)
 {
@@ -237,7 +233,7 @@ void AFlashlightCharacterBase::Look(const FInputActionValue& Value)
 
 
 
-// FOR PLAYING MONTAGES USING PLAYER CHARACTER'S ANIMINSTANCE
+// FOR PLAYING MONTAGES USING PLAYER CHARACTER'S ANIMINSTANCE //
 float AFlashlightCharacterBase::PlayAnimMontage(UAnimMontage* AnimMontage, float InPlayRate, FName StartSectionName)
 {
 	float MontageLength = 0.0f;	// Default length
@@ -260,9 +256,7 @@ float AFlashlightCharacterBase::PlayAnimMontage(UAnimMontage* AnimMontage, float
 
 
 
-//////// MELEE FUNCTIONALITY ///////
-
-// PLAY MELEE MONTAGE - after passing conditions
+// MELEE //
 void AFlashlightCharacterBase::Melee()
 {
 	if(!bAttacking && !bAiming)
@@ -272,7 +266,35 @@ void AFlashlightCharacterBase::Melee()
 	}
 }
 
+// ACTIVATE WEAPON COLLISION COMPONENT - called in MeleeAnimNotify.cpp
+void AFlashlightCharacterBase::ActivateWeapon()
+{
+	WeaponCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+}
 
+// DEACTIVATE WEAPON COLLISION COMPONENT - called in MeleeAnimNotify.cpp
+void AFlashlightCharacterBase::DeactivateWeapon()
+{
+	WeaponCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+}
+
+// BOUND TO WEAPON COLLISION COMPONENT'S OnBeginOverlap EVENT
+void AFlashlightCharacterBase::OnWeaponCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if(OtherActor->ActorHasTag("shieldDown") && OtherActor->Implements<UDamageInterface>())
+	{
+		Execute_MeleeDamage(OtherActor);	// INTERFACE EVENT CALLED IN OtherActor OBJECT - FlashlightEnemyBase.cpp
+	}
+}
+
+// ALLOWS PLAYER TO MELEE AGAIN ONCE MELEE MONTAGE IS COMPLETE
+void AFlashlightCharacterBase::OnMontageFinished(UAnimMontage* Montage, bool bMontageInterrupted)
+{
+	bAttacking = false;
+}
+
+
+// SHOOT & AIM //
 
 void AFlashlightCharacterBase::Shoot()
 {
@@ -345,39 +367,6 @@ void AFlashlightCharacterBase::Shoot()
 	}
 }
 
-
-// ACTIVATE WEAPON COLLISION COMPONENT - called in MeleeAnimNotify.cpp
-void AFlashlightCharacterBase::ActivateWeapon()
-{
-	WeaponCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-}
-
-// DEACTIVATE WEAPON COLLISION COMPONENT - called in MeleeAnimNotify.cpp
-void AFlashlightCharacterBase::DeactivateWeapon()
-{
-	WeaponCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-}
-
-
-// BOUND TO WEAPON COLLISION COMPONENT'S OnBeginOverlap EVENT
-void AFlashlightCharacterBase::OnWeaponCollisionOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-	if(OtherActor->ActorHasTag("shieldDown") && OtherActor->Implements<UDamageInterface>())
-	{
-		Execute_MeleeDamage(OtherActor);	// INTERFACE EVENT CALLED IN OtherActor OBJECT - FlashlightEnemyBase.cpp
-	}
-}
-
-
-// ALLOWS PLAYER TO MELEE AGAIN ONCE MELEE MONTAGE IS COMPLETE
-void AFlashlightCharacterBase::OnMontageFinished(UAnimMontage* Montage, bool bMontageInterrupted)
-{
-		bAttacking = false;
-}
-
-
-/////// AIM FUNCTIONALITY ///////
-
 void AFlashlightCharacterBase::StartAim()
 {
 	if (!bAttacking && !bUsingFlashlight && TimelineCurve)
@@ -422,8 +411,24 @@ void AFlashlightCharacterBase::StopAim()
 	}
 }
 
+void AFlashlightCharacterBase::AimTimelineProgress(float Alpha)
+{
+	float NewFOV = FMath::Lerp(StartFOV, EndFOV, Alpha);
+	FollowCamera->SetFieldOfView(NewFOV);
 
-////// FLASHLIGHT FUNCTIONALITY ////////
+	float NewCameraPosition = FMath::Lerp(CameraBoom->SocketOffset.Y, EndCameraPosition, Alpha);
+	CameraBoom->SocketOffset.Y = NewCameraPosition;
+}
+
+void AFlashlightCharacterBase::AimTimelineFinished()
+{
+	if (!bAiming)
+		bAimActive = false;
+}
+
+
+
+////// FLASHLIGHT COMPONENT FUNCTIONALITY ////////
 
 // AIM FLASHLIGHT START - activates flashlight component 
 void AFlashlightCharacterBase::UseFlashlight()
@@ -466,7 +471,6 @@ void AFlashlightCharacterBase::StopUsingFlashlight()
 	}
 }
 
-
 // UPDATES CAMERA & FLASHLIGHT PROPERTIES EVERY TICK OF AIM TIMELINE - called in Tick Function
 void AFlashlightCharacterBase::FlashlightTimelineProgress(float Alpha)
 {
@@ -486,7 +490,6 @@ void AFlashlightCharacterBase::FlashlightTimelineProgress(float Alpha)
 	CameraBoom->SocketOffset.Y = NewCameraPosition;
 }
 
-
 // HANDLES WHEN AIM TIMELINE FULLY PLAYS/REVERSES
 void AFlashlightCharacterBase::FlashlightTimelineFinished()
 {
@@ -498,22 +501,4 @@ void AFlashlightCharacterBase::FlashlightTimelineFinished()
 
 	else
 		bFlashlightActive = false;		// DISABLES AIM TIMELINE TICK
-}
-
-
-
-void AFlashlightCharacterBase::AimTimelineProgress(float Alpha)
-{
-	float NewFOV = FMath::Lerp(StartFOV, EndFOV, Alpha);
-	FollowCamera->SetFieldOfView(NewFOV);
-
-	float NewCameraPosition = FMath::Lerp(CameraBoom->SocketOffset.Y, EndCameraPosition, Alpha);
-	CameraBoom->SocketOffset.Y = NewCameraPosition;
-}
-
-
-void AFlashlightCharacterBase::AimTimelineFinished()
-{
-	if (!bAiming)
-		bAimActive = false;
 }

@@ -43,6 +43,7 @@ public:
 	UFUNCTION()
 	void FlashlightLineTrace();
 
+	
 	// NOT BEING USED
 		// AFlashlightCharacterBase* GetPlayerRef() const { return PlayerRef; }
 		// USpotLightComponent* GetPlayerSpotlight() const { return PlayerSpotlight; }

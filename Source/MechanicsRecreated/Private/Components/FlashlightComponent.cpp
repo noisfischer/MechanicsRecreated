@@ -28,7 +28,7 @@ void UFlashlightComponent::BeginPlay()
 		PlayerSpotlight = PlayerRef->FlashlightSpotLight;
 	}
 
-	// DEACTIVATE AIM LINE TRACE FUNCTIONALITY
+	// DEACTIVATE FLASHLIGHT LINE TRACE
 	this->SetComponentTickEnabled(false);
 	
 }

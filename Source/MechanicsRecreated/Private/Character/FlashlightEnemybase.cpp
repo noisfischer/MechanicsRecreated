@@ -4,7 +4,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
 
-// CONSTRUCTOR
+
 AFlashlightEnemybase::AFlashlightEnemybase()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -31,7 +31,7 @@ void AFlashlightEnemybase::BeginPlay()
 		UserWidget = ShieldWidget->GetUserWidgetObject();
 }
 
-// Called every frame
+
 void AFlashlightEnemybase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -85,6 +85,7 @@ void AFlashlightEnemybase::BulletDamage_Implementation(FName ClosestBoneName, FV
 				EnemyDead = true;
 				GetMesh()->SetSimulatePhysics(true);
 			}
+		
 
 		else
 			{

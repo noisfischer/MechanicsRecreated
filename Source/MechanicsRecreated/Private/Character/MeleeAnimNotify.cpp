@@ -23,7 +23,6 @@ void UMeleeAnimNotify::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequen
 void UMeleeAnimNotify::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
 	const FAnimNotifyEventReference& EventReference)
 {
-
 		if (MeshComp && MeshComp->GetOwner())
 		{
 			FlashlightCharacter = Cast<AFlashlightCharacterBase>(MeshComp->GetOwner());

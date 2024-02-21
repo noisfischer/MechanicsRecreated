@@ -29,11 +29,32 @@ class MECHANICSRECREATED_API AFlashlightCharacterBase : public ACharacter, publi
 {
 	GENERATED_BODY()
 
-	/** Camera boom positioning the camera behind the character */
+
+	// INPUT //
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputMappingContext* DefaultMappingContext;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* JumpAction;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* MoveAction;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* LookAction;
+
+	
+public:
+	// CONSTRUCTOR
+	AFlashlightCharacterBase();
+	
+
+	
+	/////// CHARACTER COMPONENTS /////////
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* CameraBoom;
-
-	/** Follow camera */
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FollowCamera;
 
@@ -48,33 +69,10 @@ class MECHANICSRECREATED_API AFlashlightCharacterBase : public ACharacter, publi
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Mesh, meta = (AllowPrivateAccess = "true"))
 	UCapsuleComponent* WeaponCollision;
-	
-	/** MappingContext */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputMappingContext* DefaultMappingContext;
-
-	/** Jump Input Action */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* JumpAction;
-
-	/** Move Input Action */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* MoveAction;
-
-	/** Look Input Action */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* LookAction;
 
 	
-public:
-	// CONSTRUCTOR
-	AFlashlightCharacterBase();
 	
-
-	
-	/////// MEMBERS /////////
-	
-	// DEFAULT CAMERA PROPERTIES FOR AIM TIMELINE
+	// DEFAULT CAMERA PROPERTIES FOR AIM TIMELINE //
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="CameraProperties")
 	float StartFOV = 90.0f;
 
